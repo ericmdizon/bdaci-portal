@@ -1,0 +1,19 @@
+/* BDACI Portal Access: drag-and-drop / paste uploader on BDACI Portal → Documents. */
+.bdaci-dropzone { position: relative; max-width: 640px; border: 2px dashed #8cc4df; border-radius: 10px; background: #f1f8fc; padding: 22px 18px; display: grid; justify-items: center; gap: 6px; text-align: center; cursor: pointer; }
+.bdaci-dropzone:focus { outline: 2px solid #2271b1; outline-offset: 2px; }
+.bdaci-dropzone .dashicons { font-size: 34px; width: 34px; height: 34px; color: #0077a8; }
+.bdaci-dropzone strong { font-size: 15px; }
+.bdaci-dropzone.is-over { border-style: solid; border-color: #3f8a1f; background: #eef7e6; }
+.bdaci-dropzone kbd { font-size: 11px; padding: 0 4px; }
+/* The real input stays in the form for submission and as a no-JS fallback. */
+.bdaci-dropzone.is-enhanced input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.bdaci-queue { max-width: 640px; margin: 10px 0 0; }
+.bdaci-queue:empty { display: none; }
+.bdaci-queue li { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid #dcdcde; margin: 0; }
+.bdaci-queue .bdaci-ext { flex: none; min-width: 44px; text-align: center; font: 700 11px/22px sans-serif; color: #fff; border-radius: 3px; background: #50575e; }
+.bdaci-queue .bdaci-ext.pdf { background: #c8102e; } .bdaci-queue .bdaci-ext.doc, .bdaci-queue .bdaci-ext.docx { background: #2b579a; }
+.bdaci-queue .bdaci-ext.xls, .bdaci-queue .bdaci-ext.xlsx, .bdaci-queue .bdaci-ext.csv { background: #217346; }
+.bdaci-queue .bdaci-ext.ppt, .bdaci-queue .bdaci-ext.pptx { background: #d24726; }
+.bdaci-queue .bdaci-ext.jpg, .bdaci-queue .bdaci-ext.jpeg, .bdaci-queue .bdaci-ext.png { background: #7a4e9a; }
+.bdaci-queue .bdaci-name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.bdaci-queue .bdaci-size { color: #646970; white-space: nowrap; }
