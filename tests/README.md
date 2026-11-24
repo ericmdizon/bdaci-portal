@@ -1,6 +1,6 @@
 # Tests
 
-`e2e.py` is the end-to-end suite (271 checks). It runs against the local test site in the BDACI dev kit
+`e2e.py` is the end-to-end suite (274 checks). It runs against the local test site in the BDACI dev kit
 (`bdaci-portal-dev-kit.zip`: WordPress on SQLite with seeded members, pages and documents). The site itself is not
 kept in this repository because it is a full WordPress install.
 
@@ -12,3 +12,13 @@ kept in this repository because it is a full WordPress install.
 `router.php`, `wpcli.php` and `test-harness.php` (a must-use plugin that captures mail to `mail.log` and fakes the
 Microsoft/Google token endpoints) are copies of the kit's harness files, kept here for reference. Test only: never put
 `test-harness.php` on a real site.
+
+## Break tests and browser checks
+
+- `break_tests.py` (51 checks) tries to break the QA Testing page and document rename/move: forged and malformed posts,
+  members without access, script injection in notes and names, spreadsheet-formula injection in the CSV, disguised and
+  oversized screenshots, tampered screenshot paths, file-name collisions and path tricks.
+  Run it after `e2e.py`: `python3 break_tests.py /path/to/this/tests /path/to/kit/wp`
+- `browser_qa.js` (30 checks) clicks through the QA page in Chromium at desktop and phone widths: pasting and dropping
+  screenshots, size limits, Save note only, filters, the Open buttons and section search.
+  Needs Playwright and an admin cookie file (written by the kit's screenshot helper).

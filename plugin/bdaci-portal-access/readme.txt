@@ -1,7 +1,7 @@
 === BDACI Portal Access ===
 Requires at least: 6.2
 Requires PHP: 7.4
-Stable tag: 2.9.0
+Stable tag: 2.9.1
 License: GPLv2 or later
 
 Restricts the BDACI Board & Committee Governance Portal to authorized users.
@@ -26,6 +26,10 @@ Shortcodes:
 See SETUP-GUIDE.md for installation and Microsoft/Google setup.
 
 == Changelog ==
+
+= 2.9.1 =
+* QA Testing CSV: notes that start with =, +, - or @ are exported as text so a spreadsheet can't run them as formulas.
+* QA Testing screenshots: the size limit now follows the server's upload limit, files that are too big or not pictures are left out before sending (and named), and a post too large for the server shows a clear message instead of a blank page.
 
 = 2.9.0 =
 * Rename an uploaded document's file (the name it downloads as); the type stays the same and links keep working.

@@ -579,4 +579,14 @@ r=s4.get(P+'/?manage=docs'); check('rename and move history shown with time', re
 check('moves logged in activity log', 'document_moved' in php('global $wpdb; echo implode(",", $wpdb->get_col("SELECT event FROM {$wpdb->prefix}bdaci_pa_log ORDER BY id DESC LIMIT 10"));'))
 h=s4.get(P+'/?manage=docs').text; n=fnonce_with(h,'bdaci_pa_doc_edit',f'name="id" value="{did}"'); s4.post(AP,data={'action':'bdaci_pa_doc_edit','_wpnonce':n,'_bdaci_front':'1','id':did,'do':'delete'})
 
+# ======================= v2.9.1 hardening found by break testing =======================
+r=s4.get(P+'/?manage=qa&group=sign'); rid=re.search(r'name="round" value="(\d+)"',r.text).group(1); n=fnonce_with(r.text,'bdaci_pa_qa_mark','value="SIGN-07"')
+check('QA forms post to an address that names the action', 'admin-post.php?action=bdaci_pa_qa_mark' in r.text.replace('&#038;','&').replace('&amp;','&'))
+s4.post(AP,data={'action':'bdaci_pa_qa_mark','_wpnonce':n,'_bdaci_front':'1','scenario':'SIGN-07','round':rid,'status':'fail','note':'=HYPERLINK("http://evil.example","x")','group':'sign'})
+r=s4.get(P+'/?manage=qa'); csvu=re.search(r'href="([^"]*bdaci_pa_qa_csv[^"]*)"',r.text).group(1).replace('&amp;','&').replace('&#038;','&')
+c=s4.get(csvu); check('QA CSV neutralises spreadsheet formulas', "'=HYPERLINK" in c.text and '",=HYPERLINK' not in c.text and '"=HYPERLINK' not in c.text)
+big=tiny_png()+b'\x00'*(9*1024*1024)
+r=s4.post(AP+'?action=bdaci_pa_qa_mark',headers={'Referer':P+'/?manage=qa&group=sign'},data={'action':'bdaci_pa_qa_mark','_wpnonce':n,'_bdaci_front':'1','scenario':'SIGN-07','round':rid,'status':'note','group':'sign'},files=[('shots[]',('huge.png',big,'image/png'))])
+check('too-large upload explains itself instead of a blank page', 'too large to send together' in r.text, r.url)
+
 print(f'\n{ok} passed, {bad} failed')
