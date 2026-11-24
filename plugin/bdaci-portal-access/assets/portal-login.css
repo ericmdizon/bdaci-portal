@@ -1,0 +1,92 @@
+/* BDACI Portal sign-in page: split layout (brand panel left, sign-in form right). */
+:root {
+	--bdaci-brand: #0077a8;
+	--bdaci-bg: #f5f7f9;
+	--bdaci-card: #ffffff;
+	--bdaci-text: #1c2a36;
+	--bdaci-muted: #566573;
+	--bdaci-border: #d8dfe6;
+	--bdaci-error-bg: #fdecec;
+	--bdaci-error: #a12020;
+	--bdaci-info-bg: #e3f3fa;
+	--bdaci-grad: linear-gradient(120deg, #006a9c 0%, #0a7fb0 45%, #3b8a26 100%);
+	--bdaci-head: "Ubuntu", "Segoe UI", system-ui, sans-serif;
+	--bdaci-body: "Open Sans", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bdaci-bg: #0d1418;
+		--bdaci-card: #151f26;
+		--bdaci-text: #e4edf2;
+		--bdaci-muted: #9bb0bc;
+		--bdaci-border: #2a3a44;
+		--bdaci-error-bg: #3a1c1c;
+		--bdaci-error: #ffb4b4;
+		--bdaci-info-bg: #10303f;
+	}
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body.bdaci-login { min-height: 100vh; background: var(--bdaci-bg); color: var(--bdaci-text); font: 16px/1.55 var(--bdaci-body); }
+.bdaci-split { min-height: 100vh; display: grid; grid-template-columns: 1.05fr 1fr; }
+
+/* Brand panel */
+.bdaci-art { position: relative; overflow: hidden; background: var(--bdaci-grad); color: #fff; padding: 48px max(24px, 5vw); display: flex; flex-direction: column; justify-content: space-between; gap: 28px; }
+.has-photo .bdaci-art { background: linear-gradient(120deg, rgba(0, 106, 156, .88) 0%, rgba(10, 127, 176, .72) 45%, rgba(59, 138, 38, .85) 100%), var(--bdaci-photo) center / cover no-repeat, var(--bdaci-grad); }
+.bdaci-art::after { content: ""; position: absolute; right: -80px; bottom: -80px; width: 320px; height: 320px; border-radius: 50%; border: 28px solid rgba(255, 255, 255, .08); pointer-events: none; }
+.bdaci-badge { align-self: flex-start; background: #fff; border-radius: 16px; padding: 12px 14px; box-shadow: 0 6px 18px rgba(0, 0, 0, .15); position: relative; z-index: 1; }
+.bdaci-badge img { display: block; height: 72px; width: auto; }
+.bdaci-illustration { display: block; width: 100%; max-width: 560px; height: auto; align-self: center; position: relative; z-index: 1; }
+.bdaci-art-text { position: relative; z-index: 1; display: grid; gap: 14px; }
+.bdaci-art blockquote { font-family: var(--bdaci-head); font-size: clamp(1.5rem, 3vw, 2.3rem); line-height: 1.2; margin: 0; font-weight: 500; max-width: 18ch; }
+.bdaci-art-text p { margin: 0; font-size: .95rem; opacity: .92; max-width: 42ch; }
+
+/* Sign-in form */
+.bdaci-card { display: flex; flex-direction: column; justify-content: center; width: 100%; max-width: 460px; margin: 0 auto; padding: 40px 20px; }
+.bdaci-head { margin-bottom: 14px; }
+.bdaci-logo { display: block; width: 100%; max-width: 300px; height: auto; margin: 0 0 20px; }
+.bdaci-eyebrow { margin: 0 0 4px; font: 500 .74rem var(--bdaci-head); letter-spacing: .08em; text-transform: uppercase; color: var(--bdaci-muted); }
+.bdaci-head h1 { font: 600 1.6rem/1.25 var(--bdaci-head); margin: 0; }
+.bdaci-welcome { margin: 6px 0 0; color: var(--bdaci-muted); font-size: .95rem; }
+.bdaci-alert { padding: 10px 12px; border-radius: 8px; margin-bottom: 14px; background: var(--bdaci-info-bg); font-size: .93rem; }
+.bdaci-alert-error { background: var(--bdaci-error-bg); color: var(--bdaci-error); }
+.bdaci-form label { display: block; font-weight: 700; font-size: .92rem; margin: 14px 0 5px; }
+.bdaci-form input[type="text"],
+.bdaci-form input[type="password"] { width: 100%; min-height: 44px; padding: 10px 12px; font: inherit; border: 1px solid var(--bdaci-border); border-radius: 8px; background: var(--bdaci-card); color: var(--bdaci-text); }
+.bdaci-form input:focus { outline: 3px solid #f0b429; outline-offset: 1px; }
+#bdaci-code { font: 1.6rem var(--bdaci-head); letter-spacing: .4em; text-align: center; }
+.bdaci-form .bdaci-check { font-weight: 400; display: flex; gap: 10px; align-items: center; margin-top: 14px; }
+.bdaci-check input { width: 18px; height: 18px; accent-color: var(--bdaci-brand); }
+.bdaci-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 44px; padding: 10px 14px; margin-top: 16px; border-radius: 8px; border: 1px solid var(--bdaci-border); font: 700 1rem var(--bdaci-body); text-decoration: none; cursor: pointer; background: var(--bdaci-card); color: var(--bdaci-text); }
+.bdaci-btn-primary { background: var(--bdaci-brand); border-color: var(--bdaci-brand); color: #fff; }
+.bdaci-btn-primary:hover { filter: brightness(1.08); }
+.bdaci-sso { display: grid; gap: 10px; }
+.bdaci-btn-sso { margin-top: 0; }
+.bdaci-btn-sso:hover { border-color: var(--bdaci-brand); }
+.bdaci-divider { display: flex; align-items: center; gap: 10px; margin: 18px 0 2px; color: var(--bdaci-muted); font-size: .85rem; }
+.bdaci-divider::before, .bdaci-divider::after { content: ""; flex: 1; border-top: 1px solid var(--bdaci-border); }
+.bdaci-links, .bdaci-inline { margin: 16px 0 0; font-size: .92rem; }
+.bdaci-card a, .bdaci-link { color: var(--bdaci-brand); }
+@media (prefers-color-scheme: dark) { .bdaci-card a, .bdaci-link { color: #38b3e6; } }
+.bdaci-link { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; text-decoration: underline; }
+.bdaci-foot { margin-top: 18px; font-size: .85rem; color: var(--bdaci-muted); }
+.bdaci-foot p { margin: 4px 0; }
+.bdaci-foot a { font-weight: 700; }
+
+/* Admin preview of the page */
+.bdaci-previewbar { position: sticky; top: 0; z-index: 5; background: #fbf1df; color: #5a3d07; border-bottom: 1px dashed #b7791f; padding: 8px 16px; font-size: .9rem; text-align: center; }
+.is-preview .bdaci-card form, .is-preview .bdaci-card .bdaci-btn { pointer-events: none; }
+.is-preview { min-height: calc(100vh - 38px); }
+
+@media (max-width: 900px) {
+	.bdaci-split { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+	.bdaci-art { padding: 20px 16px; flex-direction: row; align-items: center; gap: 16px; }
+	.bdaci-badge { padding: 8px 10px; border-radius: 12px; }
+	.bdaci-badge img { height: 44px; }
+	.bdaci-illustration { display: none; }
+	.bdaci-art blockquote { font-size: 1.15rem; }
+	.bdaci-art-text p { display: none; }
+	.bdaci-card { padding: 28px 16px 36px; }
+}
+.bdaci-card a.bdaci-btn { color: var(--bdaci-text); }
+@media (max-width: 900px) { .bdaci-badge { display: none; } }

@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 520" role="img" aria-label="Illustration: board members meeting around a table, with an agenda, a calendar and a signed document">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity=".08"/></linearGradient>
+    <filter id="s" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#00243a" flood-opacity=".28"/></filter>
+  </defs>
+  <!-- soft rings -->
+  <circle cx="300" cy="300" r="210" fill="none" stroke="#fff" stroke-opacity=".08" stroke-width="2"/>
+  <circle cx="300" cy="300" r="150" fill="none" stroke="#fff" stroke-opacity=".10" stroke-width="2" stroke-dasharray="4 10"/>
+  <!-- meeting table with people -->
+  <g filter="url(#s)">
+    <ellipse cx="300" cy="352" rx="150" ry="58" fill="#fff" fill-opacity=".16" stroke="#fff" stroke-opacity=".45" stroke-width="2"/>
+    <!-- people behind table -->
+    <g fill="#fff">
+      <circle cx="205" cy="262" r="17" fill-opacity=".92"/><path d="M175 318c0-22 13-36 30-36s30 14 30 36z" fill-opacity=".55"/>
+      <circle cx="268" cy="246" r="17" fill="#c9f0a8"/><path d="M238 302c0-22 13-36 30-36s30 14 30 36z" fill="#7ac143" fill-opacity=".8"/>
+      <circle cx="334" cy="246" r="17" fill-opacity=".92"/><path d="M304 302c0-22 13-36 30-36s30 14 30 36z" fill-opacity=".55"/>
+      <circle cx="397" cy="262" r="17" fill="#bfe8fb"/><path d="M367 318c0-22 13-36 30-36s30 14 30 36z" fill="#0093cc" fill-opacity=".85"/>
+    </g>
+    <!-- papers on table -->
+    <rect x="232" y="336" width="44" height="28" rx="4" fill="#fff" fill-opacity=".85" transform="rotate(-8 254 350)"/>
+    <rect x="318" y="338" width="44" height="28" rx="4" fill="#fff" fill-opacity=".85" transform="rotate(7 340 352)"/>
+    <rect x="283" y="350" width="34" height="22" rx="4" fill="#fff" fill-opacity=".6"/>
+    <!-- people in front -->
+    <g fill="#fff">
+      <circle cx="245" cy="420" r="17" fill-opacity=".92"/><path d="M215 476c0-22 13-36 30-36s30 14 30 36z" fill-opacity=".55"/>
+      <circle cx="355" cy="420" r="17" fill="#c9f0a8"/><path d="M325 476c0-22 13-36 30-36s30 14 30 36z" fill="#7ac143" fill-opacity=".8"/>
+    </g>
+  </g>
+  <!-- agenda document card -->
+  <g filter="url(#s)" transform="rotate(-6 120 140)">
+    <rect x="52" y="62" width="140" height="170" rx="12" fill="url(#g)" stroke="#fff" stroke-opacity=".55" stroke-width="2"/>
+    <rect x="70" y="84" width="70" height="10" rx="5" fill="#fff" fill-opacity=".9"/>
+    <g fill="#fff" fill-opacity=".55"><rect x="70" y="108" width="104" height="7" rx="3.5"/><rect x="70" y="124" width="88" height="7" rx="3.5"/><rect x="70" y="140" width="98" height="7" rx="3.5"/><rect x="70" y="156" width="70" height="7" rx="3.5"/></g>
+    <circle cx="160" cy="200" r="18" fill="#7ac143"/><path d="M151 200l6 6 12-13" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <!-- calendar card -->
+  <g filter="url(#s)" transform="rotate(5 480 130)">
+    <rect x="410" y="58" width="146" height="140" rx="12" fill="url(#g)" stroke="#fff" stroke-opacity=".55" stroke-width="2"/>
+    <rect x="410" y="58" width="146" height="34" rx="12" fill="#fff" fill-opacity=".85"/><rect x="410" y="80" width="146" height="12" fill="#fff" fill-opacity=".85"/>
+    <rect x="436" y="48" width="8" height="22" rx="4" fill="#fff"/><rect x="522" y="48" width="8" height="22" rx="4" fill="#fff"/>
+    <g fill="#fff" fill-opacity=".5">
+      <rect x="428" y="106" width="18" height="16" rx="4"/><rect x="454" y="106" width="18" height="16" rx="4"/><rect x="480" y="106" width="18" height="16" rx="4"/><rect x="506" y="106" width="18" height="16" rx="4"/><rect x="532" y="106" width="14" height="16" rx="4"/>
+      <rect x="428" y="130" width="18" height="16" rx="4"/><rect x="480" y="130" width="18" height="16" rx="4"/><rect x="506" y="130" width="18" height="16" rx="4"/><rect x="532" y="130" width="14" height="16" rx="4"/>
+      <rect x="428" y="154" width="18" height="16" rx="4"/><rect x="454" y="154" width="18" height="16" rx="4"/><rect x="506" y="154" width="18" height="16" rx="4"/>
+    </g>
+    <rect x="454" y="130" width="18" height="16" rx="4" fill="#0093cc"/>
+    <rect x="480" y="154" width="18" height="16" rx="4" fill="#7ac143"/>
+  </g>
+  <!-- lock badge -->
+  <g filter="url(#s)">
+    <circle cx="500" cy="300" r="34" fill="#fff" fill-opacity=".9"/>
+    <rect x="485" y="298" width="30" height="22" rx="5" fill="#0077a8"/>
+    <path d="M490 298v-7a10 10 0 0 1 20 0v7" fill="none" stroke="#0077a8" stroke-width="4"/>
+    <circle cx="500" cy="309" r="3.5" fill="#fff"/>
+  </g>
+  <!-- signature line -->
+  <g filter="url(#s)" transform="rotate(4 92 330)">
+    <rect x="34" y="290" width="120" height="74" rx="10" fill="url(#g)" stroke="#fff" stroke-opacity=".55" stroke-width="2"/>
+    <path d="M50 340c10-18 18-18 22-4s10 14 18-2 14-10 18 0 8 6 30-6" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+    <rect x="50" y="348" width="88" height="3" rx="1.5" fill="#fff" fill-opacity=".6"/>
+  </g>
+</svg>
