@@ -441,6 +441,35 @@ class BDACI_PA_QA {
 	const MAX_SHOT_BYTES = 8388608; // 8 MB.
 
 	/**
+	 * Largest screenshot accepted: 8 MB or the server's upload limit, whichever is smaller.
+	 *
+	 * @return int Bytes.
+	 */
+	public static function shot_limit() {
+		$server = (int) wp_max_upload_size();
+		return $server > 0 ? min( self::MAX_SHOT_BYTES, $server ) : self::MAX_SHOT_BYTES;
+	}
+
+	/**
+	 * Write a CSV row, neutralising cells that a spreadsheet would run as a formula.
+	 *
+	 * @param resource $out  Stream.
+	 * @param array    $row  Cells.
+	 */
+	private static function csv_row( $out, array $row ) {
+		fputcsv(
+			$out,
+			array_map(
+				static function ( $v ) {
+					$v = (string) $v;
+					return preg_match( '/^[=+\-@\t\r]/', $v ) ? "'" . $v : $v;
+				},
+				$row
+			)
+		);
+	}
+
+	/**
 	 * Allowed screenshot types: extension => mime.
 	 *
 	 * @return array
@@ -540,14 +569,19 @@ class BDACI_PA_QA {
 				break;
 			}
 			$tmp = (string) $files['tmp_name'][ $i ];
+			if ( UPLOAD_ERR_INI_SIZE === $err || UPLOAD_ERR_FORM_SIZE === $err ) {
+				/* translators: 1: file name, 2: size limit */
+				$errors[] = sprintf( __( '%1$s is larger than %2$s.', 'bdaci-portal-access' ), $name, size_format( self::shot_limit() ) );
+				continue;
+			}
 			if ( UPLOAD_ERR_OK !== $err || ! is_uploaded_file( $tmp ) ) {
 				/* translators: %s: file name */
 				$errors[] = sprintf( __( '%s did not upload. Try again.', 'bdaci-portal-access' ), $name );
 				continue;
 			}
-			if ( filesize( $tmp ) > self::MAX_SHOT_BYTES ) {
-				/* translators: %s: file name */
-				$errors[] = sprintf( __( '%s is larger than 8 MB.', 'bdaci-portal-access' ), $name );
+			if ( filesize( $tmp ) > self::shot_limit() ) {
+				/* translators: 1: file name, 2: size limit */
+				$errors[] = sprintf( __( '%1$s is larger than %2$s.', 'bdaci-portal-access' ), $name, size_format( self::shot_limit() ) );
 				continue;
 			}
 			$info = function_exists( 'getimagesize' ) ? @getimagesize( $tmp ) : false; // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
@@ -682,7 +716,7 @@ class BDACI_PA_QA {
 	 * @return string
 	 */
 	private static function form( $action, $extra = '' ) {
-		return '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"' . $extra . '><input type="hidden" name="action" value="bdaci_pa_qa_' . esc_attr( $action ) . '">' . wp_nonce_field( 'bdaci_pa_qa_' . $action, '_wpnonce', true, false ) . BDACI_PA_Admin_Portal::front_field();
+		return '<form method="post" action="' . esc_url( admin_url( 'admin-post.php?action=bdaci_pa_qa_' . $action ) ) . '"' . $extra . '><input type="hidden" name="action" value="bdaci_pa_qa_' . esc_attr( $action ) . '">' . wp_nonce_field( 'bdaci_pa_qa_' . $action, '_wpnonce', true, false ) . BDACI_PA_Admin_Portal::front_field();
 	}
 
 	/**
@@ -774,27 +808,35 @@ class BDACI_PA_QA {
 	 * @return string
 	 */
 	private static function script() {
-		$none = esc_js( __( 'PNG, JPG, GIF or WebP, up to 8 MB each. You can also drop them on this card.', 'bdaci-portal-access' ) );
+		/* translators: %s: size limit */
+		$none = esc_js( sprintf( __( 'PNG, JPG, GIF or WebP, up to %s each. You can also drop them on this card.', 'bdaci-portal-access' ), size_format( self::shot_limit() ) ) );
+		/* translators: %s: size limit */
+		$big  = esc_js( sprintf( __( 'Left out (larger than %s or not a picture):', 'bdaci-portal-access' ), size_format( self::shot_limit() ) ) );
+		$lim  = (int) self::shot_limit();
 		$sel  = esc_js( __( 'Ready to save:', 'bdaci-portal-access' ) );
 		$max  = (int) self::MAX_SHOTS;
 		return <<<JS
 <script>
 (function(){
-	function add(form, files){
-		var input = form.querySelector('input[type=file]'); if(!input || !files.length){return;}
-		var dt = new DataTransfer(), n = 0;
-		Array.prototype.forEach.call(input.files, function(f){ dt.items.add(f); n++; });
+	var LEFT = {};
+	function okType(f){ return /^image\/(png|jpeg|gif|webp)$/.test(f.type); }
+	function add(form, files, replace){
+		var input = form.querySelector('input[type=file]'); if(!input){return;}
+		var dt = new DataTransfer(), n = 0, left = [];
+		if(!replace){ Array.prototype.forEach.call(input.files, function(f){ dt.items.add(f); n++; }); }
 		Array.prototype.forEach.call(files, function(f, i){
-			if(!/^image\//.test(f.type) || n >= {$max}){return;}
+			if(!okType(f) || f.size > {$lim} || n >= {$max}){ left.push(f.name || 'pasted picture'); return; }
 			var name = f.name && f.name !== 'image.png' ? f.name : 'screenshot-' + Date.now() + '-' + i + '.png';
 			dt.items.add(new File([f], name, {type: f.type})); n++;
 		});
-		input.files = dt.files; show(form);
+		input.files = dt.files; LEFT[form.dataset.qaId] = left; show(form);
 	}
 	function show(form){
 		var input = form.querySelector('input[type=file]'), out = form.querySelector('.qa-picked'); if(!out){return;}
 		out.textContent = '';
-		if(!input.files.length){ out.textContent = '{$none}'; return; }
+		var left = LEFT[form.dataset.qaId] || [];
+		if(left.length){ var w = document.createElement('span'); w.style.color = 'var(--danger)'; w.textContent = '{$big} ' + left.join(', ') + '. '; out.appendChild(w); }
+		if(!input.files.length){ if(!left.length){ out.textContent = '{$none}'; } return; }
 		var b = document.createElement('b'); b.textContent = '{$sel} '; out.appendChild(b);
 		Array.prototype.forEach.call(input.files, function(f){
 			var img = document.createElement('img'); img.alt = f.name; img.className = 'qa-thumb';
@@ -803,7 +845,8 @@ class BDACI_PA_QA {
 	}
 	document.querySelectorAll('.qa-case form.qa-act').forEach(function(form){
 		var card = form.closest('.qa-case'), input = form.querySelector('input[type=file]');
-		if(input){ input.addEventListener('change', function(){ show(form); }); }
+		form.dataset.qaId = Math.random().toString(36).slice(2);
+		if(input){ input.addEventListener('change', function(){ add(form, Array.prototype.slice.call(input.files), true); }); }
 		var ta = form.querySelector('textarea');
 		if(ta){ ta.addEventListener('paste', function(e){
 			var items = (e.clipboardData || {}).files || [];
@@ -931,7 +974,7 @@ JS;
 					$cards .= '<ul class="qa-notes">' . $found . '</ul>';
 				}
 				$cards .= '<div class="qa-add"><label class="sr-only screen-reader-text" for="qa-note-' . esc_attr( $id ) . '">' . esc_html__( 'Note', 'bdaci-portal-access' ) . '</label><textarea id="qa-note-' . esc_attr( $id ) . '" name="note" rows="2" placeholder="' . esc_attr__( 'Add a note: what happened, page address, device and browser. Paste a screenshot here with Ctrl+V / ⌘+V.', 'bdaci-portal-access' ) . '"></textarea>';
-				$cards .= '<div class="qa-row qa-files"><label class="btn btn-sm qa-file"><input type="file" name="shots[]" multiple accept="image/png,image/jpeg,image/gif,image/webp" class="sr-only">' . esc_html__( 'Add screenshots', 'bdaci-portal-access' ) . '</label><span class="qa-picked small muted">' . esc_html__( 'PNG, JPG, GIF or WebP, up to 8 MB each. You can also drop them on this card.', 'bdaci-portal-access' ) . '</span><button class="btn btn-sm" name="status" value="note">' . esc_html__( 'Save note only', 'bdaci-portal-access' ) . '</button></div><p class="small muted qa-hint">' . esc_html__( 'Pressing Passed, Failed or Skipped also saves the note and screenshots with your result.', 'bdaci-portal-access' ) . '</p></div></form>';
+				$cards .= '<div class="qa-row qa-files"><label class="btn btn-sm qa-file"><input type="file" name="shots[]" multiple accept="image/png,image/jpeg,image/gif,image/webp" class="sr-only">' . esc_html__( 'Add screenshots', 'bdaci-portal-access' ) . '</label><span class="qa-picked small muted">' . esc_html( sprintf( /* translators: %s: size limit */ __( 'PNG, JPG, GIF or WebP, up to %s each. You can also drop them on this card.', 'bdaci-portal-access' ), size_format( self::shot_limit() ) ) ) . '</span><button class="btn btn-sm" name="status" value="note">' . esc_html__( 'Save note only', 'bdaci-portal-access' ) . '</button></div><p class="small muted qa-hint">' . esc_html__( 'Pressing Passed, Failed or Skipped also saves the note and screenshots with your result.', 'bdaci-portal-access' ) . '</p></div></form>';
 				if ( ! empty( $hist[ $id ] ) ) {
 					$cards .= '<details class="qa-hist"><summary>' . esc_html( sprintf( /* translators: %d: number of checks */ _n( 'History this round (%d check)', 'History this round (%d checks)', count( $hist[ $id ] ), 'bdaci-portal-access' ), count( $hist[ $id ] ) ) ) . '</summary><ul>';
 					foreach ( array_reverse( $hist[ $id ] ) as $x ) {
@@ -1068,6 +1111,14 @@ JS;
 	 * Save a mark.
 	 */
 	public static function handle_mark() {
+		// A post bigger than the server allows arrives empty: say so instead of a blank "link expired" page.
+		if ( empty( $_POST ) && ! empty( $_SERVER['CONTENT_LENGTH'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			/* translators: %s: size limit */
+			set_transient( 'bdaci_pa_notice_' . get_current_user_id(), array( sprintf( __( 'Nothing was saved: the screenshots were too large to send together. Add them in smaller batches (each up to %s).', 'bdaci-portal-access' ), size_format( self::shot_limit() ) ), 'error' ), 60 );
+			$ref = wp_get_referer();
+			wp_safe_redirect( $ref ? $ref : self::link( array() ) );
+			exit;
+		}
 		check_admin_referer( 'bdaci_pa_qa_mark' );
 		if ( ! self::can_view() ) {
 			wp_die( esc_html__( 'You do not have access to QA Testing.', 'bdaci-portal-access' ), 403 );
@@ -1157,23 +1208,23 @@ JS;
 		header( 'Content-Disposition: attachment; filename="bdaci-qa-' . sanitize_file_name( strtolower( $name ? $name : 'round' ) ) . '.csv"' );
 		$out = fopen( 'php://output', 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
 		fwrite( $out, "\xEF\xBB\xBF" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- Excel needs the BOM for UTF-8.
-		fputcsv( $out, array( 'Round', 'Group', 'ID', 'Scenario', 'Where to find it', 'Result', 'Checked by', 'Checked at', 'Note' ) );
+		self::csv_row( $out, array( 'Round', 'Group', 'ID', 'Scenario', 'Where to find it', 'Result', 'Checked by', 'Checked at', 'Note' ) );
 		$where = self::where();
 		foreach ( self::groups() as $grp ) {
 			foreach ( $grp[2] as $id => $c ) {
 				$r = $latest[ $id ] ?? null;
-				fputcsv( $out, array( $name, $grp[0], $id, $c[0], isset( $where[ $id ] ) ? implode( ' > ', $where[ $id ][0] ) : '', $r ? self::label( $r->status ) : 'Not tested', $r ? self::who( $r->user_id ) : '', $r ? self::when( $r->created_at ) : '', $r ? $r->note : '' ) );
+				self::csv_row( $out, array( $name, $grp[0], $id, $c[0], isset( $where[ $id ] ) ? implode( ' > ', $where[ $id ][0] ) : '', $r ? self::label( $r->status ) : 'Not tested', $r ? self::who( $r->user_id ) : '', $r ? self::when( $r->created_at ) : '', $r ? $r->note : '' ) );
 			}
 		}
-		fputcsv( $out, array() );
-		fputcsv( $out, array( 'Every check (QA record)' ) );
-		fputcsv( $out, array( 'When', 'Tester', 'ID', 'Result', 'Note', 'Screenshots' ) );
+		self::csv_row( $out, array() );
+		self::csv_row( $out, array( 'Every check (QA record)' ) );
+		self::csv_row( $out, array( 'When', 'Tester', 'ID', 'Result', 'Note', 'Screenshots' ) );
 		foreach ( $recs as $r ) {
 			$links = array();
 			foreach ( array_keys( self::shots_of( $r ) ) as $n ) {
 				$links[] = self::shot_url( $r->id, $n );
 			}
-			fputcsv( $out, array( self::when( $r->created_at ), self::who( $r->user_id ), $r->scenario, self::label( $r->status ), $r->note, implode( ' ', $links ) ) );
+			self::csv_row( $out, array( self::when( $r->created_at ), self::who( $r->user_id ), $r->scenario, self::label( $r->status ), $r->note, implode( ' ', $links ) ) );
 		}
 		fclose( $out ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
 		exit;

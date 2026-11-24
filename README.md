@@ -25,4 +25,4 @@ Run `tools/build.sh`, then in WordPress go to Plugins › Add New › Upload Plu
 
 ## Current version
 
-2.9.0. See `plugin/bdaci-portal-access/readme.txt` for the full changelog.
+2.9.1. See `plugin/bdaci-portal-access/readme.txt` for the full changelog.
