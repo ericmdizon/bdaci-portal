@@ -16,6 +16,7 @@ profiles, and an internal QA Testing page.
 | `docs/SETUP-GUIDE.md` | Install and admin guide. |
 | `docs/preview/` | The clickable design preview page (sample data only). |
 | `tools/build.sh` | Builds `dist/bdaci-portal-access.zip` for upload in WordPress. |
+| `.github/workflows/release.yml` | Publishes a release with the zip when a new version reaches `main`. |
 
 ## Install
 
@@ -23,6 +24,13 @@ Run `tools/build.sh`, then in WordPress go to Plugins › Add New › Upload Plu
 `dist/bdaci-portal-access.zip` (choose "Replace current with uploaded" when updating). Then follow
 `docs/SETUP-GUIDE.md`.
 
+## Releases and updates
+
+From 2.10.0 the plugin updates itself from this repository's GitHub releases (Settings › Updates needs a read-only
+fine-grained access key; see SETUP-GUIDE section 9d). To ship a version: raise the version in the plugin header and
+`BDACI_PA_VERSION`, add a `readme.txt` changelog entry, and merge to `main`. The release workflow builds the zip and
+publishes release `vX.Y.Z`; sites pick it up at their next check.
+
 ## Current version
 
-2.9.1. See `plugin/bdaci-portal-access/readme.txt` for the full changelog.
+2.10.0. See `plugin/bdaci-portal-access/readme.txt` for the full changelog.

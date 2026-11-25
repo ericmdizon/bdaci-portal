@@ -48,6 +48,9 @@ class BDACI_PA_Settings {
 			'portal_layout'           => 1,
 			'portal_fonts'            => 1,
 			'portal_keep_theme_css'   => 0,
+			'update_repo'             => 'ericmdizon/bdaci-portal',
+			'update_token'            => '',
+			'update_auto'             => 1,
 		);
 	}
 
@@ -94,7 +97,7 @@ class BDACI_PA_Settings {
 		$clean['notify_email']         = sanitize_email( $raw['notify_email'] ?? '' );
 		$clean['min_password_length']  = max( 8, min( 64, absint( $raw['min_password_length'] ?? 12 ) ) );
 
-		foreach ( array( 'mfa_password', 'mfa_sso', 'board_sees_committee', 'allow_requests', 'ms_enabled', 'google_enabled', 'remove_data_on_uninstall', 'portal_layout', 'portal_fonts', 'portal_keep_theme_css' ) as $flag ) {
+		foreach ( array( 'mfa_password', 'mfa_sso', 'board_sees_committee', 'allow_requests', 'ms_enabled', 'google_enabled', 'remove_data_on_uninstall', 'portal_layout', 'portal_fonts', 'portal_keep_theme_css', 'update_auto' ) as $flag ) {
 			$clean[ $flag ] = empty( $raw[ $flag ] ) ? 0 : 1;
 		}
 
@@ -103,8 +106,13 @@ class BDACI_PA_Settings {
 		$clean['google_client_id']     = sanitize_text_field( $raw['google_client_id'] ?? '' );
 		$clean['google_hosted_domain'] = strtolower( preg_replace( '/[^A-Za-z0-9.\-]/', '', (string) ( $raw['google_hosted_domain'] ?? '' ) ) );
 
+		$repo                          = trim( (string) ( $raw['update_repo'] ?? '' ) );
+		$repo                          = preg_replace( '#^(https?://)?(www\.)?github\.com/#i', '', rtrim( $repo, '/' ) );
+		$repo                          = preg_replace( '#\.git$#', '', $repo );
+		$clean['update_repo']          = preg_match( '#^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$#', $repo ) ? $repo : '';
+
 		// Secrets: an empty field keeps the stored value so it is never echoed back into the form.
-		foreach ( array( 'ms_client_secret', 'google_client_secret' ) as $secret ) {
+		foreach ( array( 'ms_client_secret', 'google_client_secret', 'update_token' ) as $secret ) {
 			$value = trim( (string) ( $raw[ $secret ] ?? '' ) );
 			if ( '' !== $value ) {
 				$clean[ $secret ] = $value;
@@ -114,6 +122,10 @@ class BDACI_PA_Settings {
 			}
 		}
 
+		if ( $clean['update_repo'] !== $current['update_repo'] || $clean['update_token'] !== $current['update_token'] ) {
+			delete_site_transient( 'bdaci_pa_update_info' );
+			delete_site_option( 'bdaci_pa_update_error' );
+		}
 		update_option( self::OPTION, $clean, false );
 		BDACI_PA_Access::flush_cache();
 	}

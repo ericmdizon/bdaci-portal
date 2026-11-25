@@ -33,6 +33,9 @@ foreach ( array( 'bdaci_pa_sections', 'bdaci_pa_hidden_folders', 'bdaci_pa_signo
 	delete_option( $bdaci_pa_o );
 }
 delete_transient( 'bdaci_pa_screen_map' );
+delete_site_transient( 'bdaci_pa_update_info' );
+delete_site_option( 'bdaci_pa_update_checked' );
+delete_site_option( 'bdaci_pa_update_error' );
 delete_transient( 'bdaci_pa_protected_map' );
 
 foreach ( array( 'bdaci_board_member', 'bdaci_committee_member', 'bdaci_finance_member', 'bdaci_portal_admin' ) as $bdaci_pa_role ) {
