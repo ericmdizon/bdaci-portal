@@ -2,7 +2,7 @@
 <title>BDACI Board Portal Preview</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Ubuntu:wght@400;500;700&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
 <style>
 /* Layout: 3-zone portal shell (top bar / left sidebar / workspace with right rail), plus a standalone sign-in screen.
    Brand tokens are placeholders until BDACI's exact colors are confirmed; the preview bar can swap --brand live. */
@@ -480,11 +480,13 @@ kbd { font: 600 .8em var(--font-body); border: 1px solid var(--line); border-bot
 .sig [data-sigpane][hidden] { display: none; }
 .sig input[type=text] { min-height: 42px; border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 12px; max-width: 420px; width: 100%; background: var(--surface); }
 .sig-pad { width: 100%; max-width: 600px; height: 150px; border: 1px dashed #8a9aa8; border-radius: var(--radius); background: #fff; touch-action: none; cursor: crosshair; display: block; }
-.sig-typed { font: italic 2rem/1.2 "Segoe Script", "Brush Script MT", "Snell Roundhand", "Apple Chancery", cursive; color: #13315c; }
+.sig-typed { font: 400 2.4rem/1.25 "Great Vibes", "Segoe Script", "Brush Script MT", cursive; color: #13315c; }
+.sig-namerow { display: flex; gap: 8px; align-items: center; }
+.sig-namerow input { flex: 1; min-width: 0; }
 :root[data-theme="dark"] .sig-typed { color: #9fc6ff; }
 .sig-preview { min-height: 2.6rem; border-bottom: 1px solid var(--line); max-width: 420px; padding: 2px 4px; overflow: hidden; white-space: nowrap; }
 .sig-img { height: 38px; max-width: 150px; object-fit: contain; background: #fff; border-radius: 4px; }
-.sig-sm.sig-typed { font-size: 1.3rem; white-space: nowrap; max-width: 150px; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
+.sig-sm.sig-typed { font-size: 1.6rem; white-space: nowrap; max-width: 150px; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
 .list li .grow { min-width: 0; }
 .list li .grow .small { overflow-wrap: anywhere; }
 .sig-err { color: var(--danger); font-weight: 700; }
@@ -1150,7 +1152,7 @@ kbd { font: 600 .8em var(--font-body); border: 1px solid var(--line); border-bot
   var SIGNPAD = {};
   function sigFields() {
     return '<fieldset class="sig" data-sig><legend>Your signature</legend><div class="sig-tabs" role="group" aria-label="How to sign"><button type="button" class="btn btn-sm" data-sigmode="typed" aria-pressed="true">Type</button><button type="button" class="btn btn-sm" data-sigmode="drawn" aria-pressed="false">Draw</button></div>' +
-      '<div data-sigpane="typed"><label class="small">Type your full name<input type="text" class="sig-name" autocomplete="off" placeholder="' + esc(ME[state.role][0]) + '"></label><div class="sig-typed sig-preview" aria-hidden="true"></div></div>' +
+      '<div data-sigpane="typed"><label class="small">Your name as it will appear (you can change it)<span class="sig-namerow"><input type="text" class="sig-name" autocomplete="off" value="' + esc(ME[state.role][0]) + '"><button type="button" class="btn btn-sm sig-reset" hidden>Use my name</button></span></label><div class="sig-typed sig-preview" aria-hidden="true">' + esc(ME[state.role][0]) + '</div><p class="small muted" style="margin:4px 0 0">Your name is shown as a signature. Change it above, or choose Draw to sign by hand instead.</p></div>' +
       '<div data-sigpane="drawn" hidden><canvas class="sig-pad" aria-label="Signature box. Draw with your mouse, finger or pen."></canvas><div class="row-btns" style="align-items:center"><span class="small muted">Sign with your mouse, finger or pen.</span><button type="button" class="btn btn-sm" data-sigclear>Clear</button></div></div>' +
       '<p class="small muted" style="margin:0">Signing as ' + esc(ME[state.role][0]) + ' · ' + nowStamp() + '. The date, time and your signature are recorded in the audit trail.</p></fieldset>';
   }
@@ -1167,7 +1169,7 @@ kbd { font: 600 .8em var(--font-body); border: 1px solid var(--line); border-bot
       function size() { if (st.drawn) return; var r = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1; if (!r.width) return; cv.width = Math.round(r.width * d); cv.height = Math.round(r.height * d); ctx.setTransform(d, 0, 0, d, 0, 0); ctx.lineWidth = 2.4; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#13315c"; }
       box.querySelectorAll("[data-sigmode]").forEach(function (b) { b.addEventListener("click", function () { st.how = b.getAttribute("data-sigmode"); box.querySelectorAll("[data-sigmode]").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); }); box.querySelectorAll("[data-sigpane]").forEach(function (p) { p.hidden = p.getAttribute("data-sigpane") !== st.how; }); if (st.how === "drawn") size(); var er = box.querySelector(".sig-err"); if (er) er.remove(); }); });
       var nm = box.querySelector(".sig-name"), pv = box.querySelector(".sig-preview");
-      nm.addEventListener("input", function () { pv.textContent = nm.value; var e = box.querySelector(".sig-err"); if (e) e.remove(); });
+      var rs = box.querySelector(".sig-reset"), mine = ME[state.role][0]; function sync() { pv.textContent = nm.value; rs.hidden = nm.value.trim() === mine; } nm.addEventListener("input", function () { sync(); var e = box.querySelector(".sig-err"); if (e) e.remove(); }); rs.addEventListener("click", function () { nm.value = mine; sync(); nm.focus(); });
       function pos(e) { var r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
       cv.addEventListener("pointerdown", function (e) { e.preventDefault(); size(); down = true; cv.setPointerCapture(e.pointerId); var p = pos(e); ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(p[0] + .1, p[1] + .1); ctx.stroke(); });
       cv.addEventListener("pointermove", function (e) { if (!down) return; var p = pos(e); ctx.lineTo(p[0], p[1]); ctx.stroke(); });

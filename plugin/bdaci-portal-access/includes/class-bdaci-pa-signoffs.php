@@ -291,11 +291,15 @@ class BDACI_PA_Signoffs {
 	 * @return string HTML.
 	 */
 	public static function sig_fields( $id_prefix ) {
-		$u  = wp_get_current_user();
-		$id = esc_attr( $id_prefix );
+		$u    = wp_get_current_user();
+		$id   = esc_attr( $id_prefix );
+		$full = trim( get_user_meta( $u->ID, 'first_name', true ) . ' ' . get_user_meta( $u->ID, 'last_name', true ) );
+		if ( '' === $full ) {
+			$full = $u->display_name;
+		}
 		return '<fieldset class="sig" data-sig><legend>' . esc_html__( 'Your signature', 'bdaci-portal-access' ) . '</legend>' .
 			'<div class="sig-tabs" role="group" aria-label="' . esc_attr__( 'How to sign', 'bdaci-portal-access' ) . '"><button type="button" class="btn btn-sm" data-sig-mode="typed" aria-pressed="true">' . esc_html__( 'Type', 'bdaci-portal-access' ) . '</button><button type="button" class="btn btn-sm" data-sig-mode="drawn" aria-pressed="false">' . esc_html__( 'Draw', 'bdaci-portal-access' ) . '</button></div>' .
-			'<div data-sig-pane="typed"><label class="small" for="' . $id . '-name">' . esc_html__( 'Type your full name', 'bdaci-portal-access' ) . '</label><input id="' . $id . '-name" name="sig_name" autocomplete="name" maxlength="80" value="" placeholder="' . esc_attr( $u->display_name ) . '"><div class="sig-typed sig-preview" aria-hidden="true"></div></div>' .
+			'<div data-sig-pane="typed"><label class="small" for="' . $id . '-name">' . esc_html__( 'Your name as it will appear (you can change it)', 'bdaci-portal-access' ) . '</label><div class="sig-namerow"><input id="' . $id . '-name" name="sig_name" autocomplete="name" maxlength="80" value="' . esc_attr( $full ) . '" placeholder="' . esc_attr( $full ) . '"><button type="button" class="btn btn-sm" data-sig-reset data-name="' . esc_attr( $full ) . '" hidden>' . esc_html__( 'Use my name', 'bdaci-portal-access' ) . '</button></div><div class="sig-typed sig-preview" aria-hidden="true">' . esc_html( $full ) . '</div><p class="small muted sig-hint">' . esc_html__( 'Your name is shown as a signature. Change it above, or choose Draw to sign by hand instead.', 'bdaci-portal-access' ) . '</p></div>' .
 			'<div data-sig-pane="drawn" hidden><canvas class="sig-pad" width="600" height="170" aria-label="' . esc_attr__( 'Signature box. Draw with your mouse, finger or pen.', 'bdaci-portal-access' ) . '"></canvas><div class="row-btns"><span class="small muted">' . esc_html__( 'Sign with your mouse, finger or pen.', 'bdaci-portal-access' ) . '</span><button type="button" class="btn btn-sm" data-sig-clear>' . esc_html__( 'Clear', 'bdaci-portal-access' ) . '</button></div></div>' .
 			'<input type="hidden" name="sig_how" value="typed"><input type="hidden" name="sig_img" value="">' .
 			'<p class="small muted sig-when">' . esc_html( sprintf( /* translators: 1: name, 2: date and time */ __( 'Signing as %1$s · %2$s. The date, time and your signature are recorded in the audit trail.', 'bdaci-portal-access' ), $u->display_name, date_i18n( 'M j, Y g:i A' ) ) ) . '</p></fieldset>';
@@ -866,7 +870,9 @@ class BDACI_PA_Signoffs {
 		nocache_headers();
 		header( 'Content-Type: text/html; charset=utf-8' );
 		echo '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' . esc_html( $title ) . '</title>';
-		echo '<style>body{font:14px/1.5 "Open Sans",Arial,sans-serif;color:#1c2a36;margin:32px;max-width:960px}h1{font:600 22px Ubuntu,Arial,sans-serif;margin:0 0 8px}h2{font:600 17px Ubuntu,Arial,sans-serif;margin:24px 0 8px}table{border-collapse:collapse;width:100%;margin-top:12px}th,td{text-align:left;border-bottom:1px solid #d8dfe6;padding:6px 8px;vertical-align:top}th{font-size:12px;text-transform:uppercase;color:#566573}.sig-img{max-height:70px;max-width:260px}.sig-typed{font:italic 28px "Segoe Script","Brush Script MT","Snell Roundhand","Apple Chancery",cursive}.logo{height:48px;margin-bottom:16px}.muted{color:#566573}.noprint{margin-bottom:16px}@media print{.noprint{display:none}body{margin:0}}</style></head><body>';
+		$bdaci_font = plugins_url( 'assets/fonts/', BDACI_PA_FILE );
+		echo '<style>@font-face{font-family:"BDACI Signature";font-style:normal;font-weight:400;font-display:swap;src:url(' . esc_url( $bdaci_font ) . 'great-vibes-latin-ext-400-normal.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:"BDACI Signature";font-style:normal;font-weight:400;font-display:swap;src:url(' . esc_url( $bdaci_font ) . 'great-vibes-latin-400-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}</style>';
+		echo '<style>body{font:14px/1.5 "Open Sans",Arial,sans-serif;color:#1c2a36;margin:32px;max-width:960px}h1{font:600 22px Ubuntu,Arial,sans-serif;margin:0 0 8px}h2{font:600 17px Ubuntu,Arial,sans-serif;margin:24px 0 8px}table{border-collapse:collapse;width:100%;margin-top:12px}th,td{text-align:left;border-bottom:1px solid #d8dfe6;padding:6px 8px;vertical-align:top}th{font-size:12px;text-transform:uppercase;color:#566573}.sig-img{max-height:70px;max-width:260px}.sig-typed{font:400 32px "BDACI Signature","Segoe Script","Brush Script MT",cursive}.logo{height:48px;margin-bottom:16px}.muted{color:#566573}.noprint{margin-bottom:16px}@media print{.noprint{display:none}body{margin:0}}</style></head><body>';
 		echo '<p class="noprint"><button onclick="window.print()">' . esc_html__( 'Print or save as PDF', 'bdaci-portal-access' ) . '</button></p>';
 		echo '<img class="logo" src="' . esc_url( BDACI_PA_URL . 'assets/logo-full.png' ) . '" alt="">';
 		echo $body; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped by the caller.

@@ -85,7 +85,10 @@
     }
     function clearErr() { var e = box.querySelector('.sig-err'); if (e) e.remove(); }
     box.querySelectorAll('[data-sig-mode]').forEach(function (b) { b.addEventListener('click', function () { mode(b.getAttribute('data-sig-mode')); }); });
-    if (name && prev) name.addEventListener('input', function () { prev.textContent = name.value; clearErr(); });
+    var reset = box.querySelector('[data-sig-reset]');
+    function sync() { if (prev) prev.textContent = name.value; if (reset) reset.hidden = name.value.trim() === (reset.getAttribute('data-name') || ''); }
+    if (name) { name.addEventListener('input', function () { sync(); clearErr(); }); sync(); }
+    if (reset) reset.addEventListener('click', function () { name.value = reset.getAttribute('data-name') || ''; sync(); clearErr(); name.focus(); });
     if (cv) {
       var pos = function (e) { var r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
       cv.addEventListener('pointerdown', function (e) { e.preventDefault(); size(); down = true; cv.setPointerCapture(e.pointerId); var p = pos(e); ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(p[0] + 0.1, p[1] + 0.1); ctx.stroke(); });

@@ -1,3 +1,5 @@
+/* Signature script font: Great Vibes (SIL Open Font License, see fonts/GreatVibes-OFL.txt). */
+@font-face{font-family:'BDACI Signature';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/great-vibes-latin-ext-400-normal.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:'BDACI Signature';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/great-vibes-latin-400-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 .bp { --logo-blue: #0093cc;      
   --logo-green: #7ac143;     
   --brand: #0077a8;          
@@ -577,11 +579,11 @@
 .bp .sig [data-sig-pane][hidden] { display: none; }
 .bp .sig input[name="sig_name"] { min-height: 42px; border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 12px; font: inherit; max-width: 420px; width: 100%; }
 .bp .sig-pad { width: 100%; max-width: 600px; height: 150px; border: 1px dashed #8a9aa8; border-radius: var(--radius); background: #fff linear-gradient(transparent calc(100% - 34px), #c7d1da calc(100% - 34px), #c7d1da calc(100% - 33px), transparent calc(100% - 33px)); touch-action: none; cursor: crosshair; display: block; }
-.bp .sig-typed, .sig-typed { font: italic 2rem/1.2 "Segoe Script", "Brush Script MT", "Snell Roundhand", "Apple Chancery", "URW Chancery L", cursive; color: #13315c; }
+.bp .sig-typed, .sig-typed { font: 400 2.4rem/1.25 "BDACI Signature", "Segoe Script", "Brush Script MT", "Snell Roundhand", cursive; color: #13315c; }
 .bp .sig-preview { min-height: 2.6rem; border-bottom: 1px solid #c7d1da; max-width: 420px; padding: 2px 4px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .bp .sig-img { height: 54px; max-width: 220px; object-fit: contain; background: #fff; border-radius: 4px; }
 .bp .sig-sm.sig-img { height: 38px; max-width: 150px; }
-.bp .sig-sm.sig-typed { font-size: 1.3rem; white-space: nowrap; max-width: 150px; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
+.bp .sig-sm.sig-typed { font-size: 1.6rem; white-space: nowrap; max-width: 150px; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
 .bp .sig-when { margin: 0; }
 .bp .sig-err { color: var(--danger); font-weight: 700; }
 .bp .signask { display: grid; gap: 6px; border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; background: var(--surface-2); }
@@ -595,3 +597,7 @@
   .bp .vw-sign { max-height: 65%; }
 }
 @media print { .bp.bp-viewer { display: none !important; } }
+
+.bp .sig-namerow { display: flex; gap: 8px; align-items: center; }
+.bp .sig-namerow input { flex: 1; min-width: 0; }
+.bp .sig-hint { margin: 4px 0 0; }
