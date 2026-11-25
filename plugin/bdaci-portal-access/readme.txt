@@ -1,7 +1,7 @@
 === BDACI Portal Access ===
 Requires at least: 6.2
 Requires PHP: 7.4
-Stable tag: 2.11.0
+Stable tag: 2.11.1
 License: GPLv2 or later
 
 Restricts the BDACI Board & Committee Governance Portal to authorized users.
@@ -26,6 +26,10 @@ Shortcodes:
 See SETUP-GUIDE.md for installation and Microsoft/Google setup.
 
 == Changelog ==
+
+= 2.11.1 =
+* Document viewer: removed the Download and Print buttons, and the browser's own PDF toolbar is hidden where supported. Word, Excel and PowerPoint files still offer a download, since browsers can't show them.
+* Full screen now works: the page goes full screen and the viewer fills it (browsers don't allow a pop-up window to go full screen by itself).
 
 = 2.11.0 =
 * Document viewer: documents open in a pop-up in the portal instead of a new tab, with Expand, Full screen, Print, Download and Open in new tab. PDFs, pictures and text files show inside it; Word, Excel and PowerPoint files offer a download.

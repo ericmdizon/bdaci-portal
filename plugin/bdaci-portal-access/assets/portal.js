@@ -110,7 +110,7 @@
   document.querySelectorAll('[data-sig]').forEach(initSig);
 
   // ---------------------------------------------------------------------
-  // Document viewer: opens documents in a pop-up with expand, full screen, print and download,
+  // Document viewer: opens documents in a pop-up with expand and full screen,
   // and asks for the sign-off there when the document (or its sign-off pack) needs one.
   var V = window.bpView;
   if (V && window.HTMLDialogElement) {
@@ -141,14 +141,13 @@
       metaEl = document.createElement('span');
       tt.appendChild(titleEl); tt.appendChild(metaEl);
       var tools = document.createElement('div'); tools.className = 'vw-tools';
-      var bDl = btn('download', ICON.dl, T('download'), 'a');
-      var bPr = btn('print', ICON.print, T('print'));
       var bTab = btn('newtab', ICON.tab, T('newtab'), 'a'); bTab.target = '_blank'; bTab.rel = 'noopener';
       var bEx = btn('expand', ICON.expand, T('expand'));
       var bFs = btn('full', ICON.full, T('full'));
       var bX = document.createElement('button'); bX.type = 'button'; bX.className = 'btn vw-x'; bX.setAttribute('data-vw', 'close'); bX.setAttribute('aria-label', T('close')); bX.title = T('close'); bX.textContent = '✕';
-      [bDl, bPr, bTab, bEx, bFs, bX].forEach(function (b) { tools.appendChild(b); });
-      if (!dlg.requestFullscreen) bFs.hidden = true;
+      [bTab, bEx, bFs, bX].forEach(function (b) { tools.appendChild(b); });
+      var root = document.documentElement;
+      if (!root.requestFullscreen || document.fullscreenEnabled === false) bFs.hidden = true;
       head.appendChild(tt); head.appendChild(tools);
       body = document.createElement('div'); body.className = 'vw-body';
       sign = document.createElement('div'); sign.className = 'vw-sign'; sign.hidden = true;
@@ -156,18 +155,21 @@
       document.body.appendChild(dlg);
       bX.addEventListener('click', tryClose);
       dlg.addEventListener('cancel', function (e) { e.preventDefault(); if (document.fullscreenElement) return; tryClose(); });
+      // A modal <dialog> can't be made full screen itself (browsers refuse it), so the page goes full screen
+      // and the viewer fills it.
       dlg.addEventListener('click', function (e) { if (e.target === dlg) tryClose(); });
-      bPr.addEventListener('click', printDoc);
-      bDl.addEventListener('click', function () { if (cur) { cur.got = true; markOpened(); } });
       bEx.addEventListener('click', function () {
         var on = dlg.classList.toggle('max');
         bEx.querySelector('.lbl').textContent = on ? T('shrink') : T('expand'); bEx.title = bEx.querySelector('.lbl').textContent; bEx.setAttribute('aria-label', bEx.title);
       });
       bFs.addEventListener('click', function () {
-        if (document.fullscreenElement) { document.exitFullscreen(); } else { dlg.requestFullscreen().catch(function () {}); }
+        if (document.fullscreenElement) { document.exitFullscreen().catch(function () {}); return; }
+        dlg.classList.add('fs');
+        root.requestFullscreen().catch(function () { dlg.classList.remove('fs'); });
       });
       document.addEventListener('fullscreenchange', function () {
-        var on = document.fullscreenElement === dlg;
+        var on = !!document.fullscreenElement;
+        if (!on) dlg.classList.remove('fs');
         bFs.querySelector('.lbl').textContent = on ? T('exitfull') : T('full'); bFs.title = bFs.querySelector('.lbl').textContent; bFs.setAttribute('aria-label', bFs.title);
       });
     };
@@ -182,7 +184,8 @@
     var load = function () {
       body.innerHTML = '';
       if (cur.type === 'pdf') {
-        var f = document.createElement('iframe'); f.src = cur.url; f.title = cur.title; body.appendChild(f);
+        // #toolbar=0 hides the browser's own PDF toolbar (download and print) where the browser supports it.
+        var f = document.createElement('iframe'); f.src = cur.url + '#toolbar=0&navpanes=0'; f.title = cur.title; body.appendChild(f);
       } else if (cur.type === 'img') {
         var sc = document.createElement('div'); sc.className = 'vw-scroll';
         var i = document.createElement('img'); i.className = 'vw-img'; i.src = cur.url; i.alt = cur.title;
@@ -198,24 +201,6 @@
       } else {
         body.appendChild(msg(T('noPreview'), true));
       }
-      tool('print').hidden = cur.type === 'file';
-    };
-    var printDoc = function () {
-      if (!cur) return;
-      if (cur.type === 'pdf') {
-        var f = body.querySelector('iframe');
-        try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { window.open(cur.url, '_blank', 'noopener'); }
-        return;
-      }
-      var src = body.querySelector('.vw-img, pre');
-      var w = window.open('', '_blank');
-      if (!w || !src) return;
-      w.document.title = cur.title;
-      var h = w.document.createElement('h1'); h.textContent = cur.title; h.style.font = '600 18px Arial,sans-serif';
-      var node = w.document.importNode(src, true); node.removeAttribute('class');
-      if (node.tagName === 'IMG') node.style.maxWidth = '100%'; else node.style.cssText = 'white-space:pre-wrap;font:12px/1.5 monospace';
-      w.document.body.appendChild(h); w.document.body.appendChild(node);
-      setTimeout(function () { w.focus(); w.print(); }, 400);
     };
     var markOpened = function () {
       if (!cur) return;
@@ -289,7 +274,7 @@
     };
     var reallyClose = function () {
       if (document.fullscreenElement) document.exitFullscreen().catch(function () {});
-      dlg.close(); body.innerHTML = ''; dlg.classList.remove('max'); cur = null;
+      dlg.close(); body.innerHTML = ''; dlg.classList.remove('max', 'fs'); cur = null;
     };
     var tryClose = function () {
       if (pending() && !warned) {
@@ -321,7 +306,7 @@
         statement: a.getAttribute('data-statement') || '', packs: (a.getAttribute('data-packs') || '').split(',').filter(function (k) { return k && V.packs[k]; })
       };
       titleEl.textContent = cur.title; metaEl.textContent = cur.meta;
-      tool('download').href = cur.dl; tool('newtab').href = cur.url;
+      tool('newtab').href = cur.url;
       load();
       if (cur.type !== 'file') markOpened(); else renderSign();
       if (!dlg.open) dlg.showModal();
