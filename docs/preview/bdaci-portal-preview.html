@@ -440,6 +440,55 @@ kbd { font: 600 .8em var(--font-body); border: 1px solid var(--line); border-bot
 .pf-opt svg { display: block; width: 100%; height: 100%; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (max-width: 560px) { .pf-current { grid-template-columns: minmax(0, 1fr); justify-items: start; } .pf-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; } }
+/* Document viewer and signatures */
+.viewer { padding: 0; border: 0; border-radius: 14px; width: min(1100px, 96vw); height: min(900px, 92vh); max-width: none; max-height: none; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.35); background: var(--surface); color: var(--fg); }
+.viewer[open] { display: flex; flex-direction: column; }
+.viewer::backdrop { background: rgba(10, 25, 35, .65); }
+.viewer.max { width: 100vw; height: 100vh; height: 100dvh; border-radius: 0; }
+.viewer:fullscreen { width: 100vw; height: 100vh; border-radius: 0; }
+.viewer [hidden] { display: none !important; }
+.vw-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px 10px 16px; border-bottom: 1px solid var(--line); }
+.vw-title { flex: 1; min-width: 0; display: grid; }
+.vw-title b { font-family: var(--font-head); font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vw-title span { font-size: .82rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vw-tools { display: flex; gap: 4px; }
+.vw-tools .btn { min-height: 38px; padding: 6px 10px; font-weight: 600; font-size: .88rem; gap: 6px; }
+.vw-tools .btn svg { width: 18px; height: 18px; flex: none; }
+.vw-tools .vw-x { font-size: 1.25rem; padding: 6px 12px; }
+.vw-body { flex: 1; min-height: 0; overflow: auto; background: #525659; padding: 24px 12px; }
+.vw-page { background: #fff; color: #1c2a36; max-width: 760px; margin: 0 auto; padding: 48px 56px; min-height: 980px; box-shadow: 0 2px 10px rgba(0,0,0,.3); font: 15px/1.65 Georgia, serif; }
+.vw-page h1 { font: 600 24px Arial, sans-serif; color: #0b4f73; margin: 0 0 4px; }
+.vw-page h2 { font: 600 15px Arial, sans-serif; color: #0b4f73; margin: 22px 0 6px; }
+.vw-page .sub { font: 12px Arial, sans-serif; color: #566573; margin-bottom: 18px; }
+.vw-page p { margin: 0 0 10px; }
+.vw-sign { border-top: 1px solid var(--line); background: var(--surface); max-height: 55%; overflow: auto; box-shadow: inset 0 3px 0 var(--warn); }
+.vw-sign.done { box-shadow: inset 0 3px 0 var(--accent); }
+.vw-sign-in { padding: 12px 16px; display: grid; gap: 10px; }
+.vw-sign-h { display: flex; align-items: center; gap: 10px; justify-content: space-between; flex-wrap: wrap; }
+.vw-sign-h h2 { font-size: 1.02rem; }
+.vw-sign.compact .vw-sign-in > :not(.vw-sign-h) { display: none; }
+.vw-sign:not(.compact) .vw-open-sign { display: none; }
+.vw-leave { background: var(--warn-soft); border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent); border-radius: var(--radius); padding: 12px 14px; display: grid; gap: 8px; }
+.vw-leave b { color: var(--warn); }
+.sig { border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px 12px; margin: 0; display: grid; gap: 8px; min-width: 0; background: var(--surface); }
+.sig legend { font-weight: 700; padding: 0 4px; }
+.sig-tabs { display: flex; gap: 6px; }
+.sig-tabs .btn { min-height: 34px; padding: 4px 14px; }
+.sig-tabs .btn[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+.sig [data-sigpane] { display: grid; gap: 6px; }
+.sig [data-sigpane][hidden] { display: none; }
+.sig input[type=text] { min-height: 42px; border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 12px; max-width: 420px; width: 100%; background: var(--surface); }
+.sig-pad { width: 100%; max-width: 600px; height: 150px; border: 1px dashed #8a9aa8; border-radius: var(--radius); background: #fff; touch-action: none; cursor: crosshair; display: block; }
+.sig-typed { font: italic 2rem/1.2 "Segoe Script", "Brush Script MT", "Snell Roundhand", "Apple Chancery", cursive; color: #13315c; }
+:root[data-theme="dark"] .sig-typed { color: #9fc6ff; }
+.sig-preview { min-height: 2.6rem; border-bottom: 1px solid var(--line); max-width: 420px; padding: 2px 4px; overflow: hidden; white-space: nowrap; }
+.sig-img { height: 38px; max-width: 150px; object-fit: contain; background: #fff; border-radius: 4px; }
+.sig-sm.sig-typed { font-size: 1.3rem; white-space: nowrap; max-width: 150px; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
+.list li .grow { min-width: 0; }
+.list li .grow .small { overflow-wrap: anywhere; }
+.sig-err { color: var(--danger); font-weight: 700; }
+.signask { display: grid; gap: 6px; border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; background: var(--surface-2); }
+@media (max-width: 720px) { .viewer { width: 100vw; height: 100vh; height: 100dvh; border-radius: 0; } .vw-tools .lbl { display: none; } .vw-tools [data-vw="expand"] { display: none; } .vw-page { padding: 24px 20px; min-height: 0; } .vw-body { padding: 10px 6px; } .vw-sign { max-height: 65%; } }
 @media (max-width: 1100px) { .grid-dash { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 900px) {
   .signin { grid-template-columns: 1fr; }
@@ -772,6 +821,7 @@ kbd { font: 600 .8em var(--font-body); border: 1px solid var(--line); border-bot
     var tasks = [];
     if (!state.orient.signed) tasks.push('<li><span class="pill pill-warn">Action required</span><div class="grow"><b>New Director Orientation sign-off</b><span class="muted small">Read 4 documents and confirm</span></div><a class="btn btn-sm" href="#orientation">Open</a></li>');
     if (!state.qa.signed) tasks.push('<li><span class="pill pill-warn">Action required</span><div class="grow"><b>Quality Assurance 2026 annual sign-off</b><span class="muted small">Due December 31, 2026</span></div><a class="btn btn-sm" href="#qa">Open</a></li>');
+    Object.keys(DOCSIGN).forEach(function (k) { var d = DOCSIGN[k]; if (!d.signed && canBoard()) tasks.push('<li><span class="pill pill-warn">Sign-off</span><div class="grow"><b>' + esc(d.title) + '</b><span class="muted small">Read the document and sign off</span></div><button class="btn btn-sm" data-vdoc="' + k + '">Open</button></li>'); });
     if (m && !state.rsvp[m.id]) tasks.push('<li><span class="pill pill-muted">RSVP</span><div class="grow"><b>' + esc(m.title) + '</b><span class="muted small">' + fmtShort(m.date) + '</span></div><button class="btn btn-sm" data-scroll="next">Respond</button></li>');
     var card = m ? '<section class="panel next" id="next" aria-labelledby="next-h"><div><p class="eyebrow">Next meeting</p><h2 id="next-h">' + esc(m.title) + '</h2></div>' +
       '<dl class="next-meta" style="margin:0"><div><dt>Date</dt><dd class="tabnum">' + fmtLong(m.date) + '</dd></div><div><dt>Time</dt><dd class="tabnum">' + m.time + '</dd></div><div><dt>Location</dt><dd>' + esc(m.where) + (m.video ? '<br><a href="#dashboard" data-toast="In the live portal this opens the Microsoft Teams meeting.">Join video call</a>' : "") + '</dd></div></dl>' +
@@ -894,11 +944,11 @@ kbd { font: 600 .8em var(--font-body); border: 1px solid var(--line); border-bot
     var list = '<ul class="list">' + docs.map(function (d, i) { return '<li>' + thumb(d[0]) + '<div class="grow"><b>' + esc(d[0]) + '</b><span class="muted small">' + esc(d[1]) + '</span></div>' + (s.read[i] ? '<span class="pill pill-ok">Opened</span>' : '<span class="pill pill-muted">Not opened</span>') + '<button class="btn btn-sm" data-read="' + key + '" data-i="' + i + '">Open</button></li>'; }).join("") + '</ul>';
     var box;
     if (s.signed) {
-      box = '<section class="signoff done" aria-live="polite"><h2>Signed off</h2><div class="receipt"><span><b>' + esc(ME[state.role][0]) + '</b> confirmed on <b class="tabnum">' + s.signed + '</b>.</span><span class="muted">This is recorded in the portal\'s sign-off audit trail.</span>' + (extraDone || "") + '</div></section>';
+      box = '<section class="signoff done" aria-live="polite"><h2>Signed off</h2><div class="receipt"><span><b>' + esc(ME[state.role][0]) + '</b> confirmed on <b class="tabnum">' + s.signed + '</b>.</span>' + (s.sig ? '<span>' + sigHtml(s.sig, "") + '</span>' : '') + '<span class="muted">This is recorded in the portal\'s sign-off audit trail.</span>' + (extraDone || "") + '</div></section>';
     } else {
       box = '<section class="signoff"><div class="panel-h" style="margin:0"><h2>Action required: digital sign-off</h2><span class="small tabnum">' + readCount + ' of ' + docs.length + ' opened</span></div><div class="progress" aria-hidden="true"><i style="width:' + Math.round(readCount / docs.length * 100) + '%"></i></div>' +
         '<label class="check"><input type="checkbox" id="ack-' + key + '"' + (all ? "" : " disabled") + '> ' + statement + '</label>' +
-        (all ? "" : '<p class="small muted">Open each document above to unlock the sign-off.</p>') +
+        (all ? "" : '<p class="small muted">Open each document above to unlock the sign-off.</p>') + sigFields() +
         '<div><button class="btn btn-primary" id="sign-' + key + '" disabled>Sign off</button></div></section>';
     }
     return shell(route, head(title, intro) + '<section class="panel"><h2>Documents</h2>' + list + '</section>' + box);
@@ -1029,6 +1079,7 @@ kbd { font: 600 .8em var(--font-body); border: 1px solid var(--line); border-bot
       '</svg><div class="mid"><b class="tabnum">' + done + '/' + total + '</b><span class="small muted">signed</span></div></div>';
   }
   function viewAdminAudit() {
+    if (state.auditTab === "docs") return viewDocSignoffs();
     var key = state.auditTab || "qa", so = SIGNOFFS[key], ppl = so.list();
     var signed = [], pending = [];
     ppl.forEach(function (p) { var r = signedRec(key, p[0]); if (r) signed.push([p, r]); else pending.push(p); });
@@ -1040,7 +1091,7 @@ kbd { font: 600 .8em var(--font-body); border: 1px solid var(--line); border-bot
     var tabs = '<div class="years" role="group" aria-label="Sign-off" style="margin-bottom:16px">' + Object.keys(SIGNOFFS).map(function (k) {
       var l = SIGNOFFS[k].list(), d = l.filter(function (p) { return signedRec(k, p[0]); }).length;
       return '<button data-atab="' + k + '" aria-pressed="' + (k === key) + '">' + SIGNOFFS[k].title + ' <span class="tabnum" style="opacity:.75">' + d + '/' + l.length + '</span></button>';
-    }).join("") + '</div>';
+    }).join("") + docTab(false) + '</div>';
 
     var summary = '<section class="panel"><div class="panel-h"><h2>' + so.title + '</h2><span class="small muted">' + so.who + ' · due ' + dueTxt + '</span></div>' +
       '<div class="so-summary">' + donut(signed.length, ppl.length) +
@@ -1052,7 +1103,7 @@ kbd { font: 600 .8em var(--font-body); border: 1px solid var(--line); border-bot
       '</div><div class="progress" aria-hidden="true"><i style="width:' + pct + '%"></i></div><span class="small muted tabnum">' + pct + '% complete' + (pending.length ? " · " + pending.length + " still to sign" : " · everyone has signed") + '</span></div></div></section>';
 
     var signedList = signed.length ? '<ul class="list">' + signed.map(function (x) {
-      return '<li>' + avatar(x[0][0], "av-sm") + '<div class="grow"><b>' + esc(x[0][0]) + '</b><span class="small muted">' + esc(x[0][1]) + '</span>' + steps(key, x[0][0], x[1]) + '</div><span class="small tabnum" style="text-align:right">' + x[1].when.slice(0, 10) + '<br><span class="muted">' + x[1].when.slice(11) + '</span></span></li>';
+      return '<li>' + avatar(x[0][0], "av-sm") + '<div class="grow"><b>' + esc(x[0][0]) + '</b><span class="small muted">' + esc(x[0][1]) + '</span>' + steps(key, x[0][0], x[1]) + '</div>' + sigHtml(x[1].sig || { how: "typed", name: x[0][0] }, "sig-sm") + '<span class="small tabnum" style="text-align:right">' + x[1].when.slice(0, 10) + '<br><span class="muted">' + x[1].when.slice(11) + '</span></span></li>';
     }).join("") + '</ul>' : '<p class="muted small">No one has signed yet.</p>';
     var pendList = pending.length ? '<ul class="list">' + pending.map(function (p) {
       return '<li>' + avatar(p[0], "av-sm") + '<div class="grow"><b>' + esc(p[0]) + '</b><span class="small muted">' + esc(p[1]) + ' · ' + soEmail(p[0]) + '</span>' + steps(key, p[0], null) + '</div><span class="pill ' + (overdue ? "pill-warn" : "pill-muted") + '">' + (overdue ? "Overdue" : "Due " + so.due.slice(5).replace("-", "/")) + '</span><button class="btn btn-sm" data-remind="' + key + '|' + esc(p[0]) + '">Remind</button></li>';
@@ -1088,6 +1139,170 @@ kbd { font: 600 .8em var(--font-body); border: 1px solid var(--line); border-bot
 
     return adminGuard("admin-audit", head("Sign-off Audit Trail", "When each sign-off was sent, who has signed and who still needs to, with names, dates and times.", '<button class="btn btn-sm" data-toast="In the live portal this downloads the audit trail as a PDF or CSV.">Export</button>') +
       tabs + summary + cols + matrix + log);
+  }
+  /* ---------- Document viewer and signatures ---------- */
+  var DOCSIGN = {
+    coc: { title: "Board Code of Conduct 2027", statement: "I have read the Board Code of Conduct and agree to follow it.", signed: null, sig: null,
+      signers: [["David Okafor", "2026-11-17 19:22", { how: "typed", name: "David Okafor" }], ["Linh Tran", "2026-11-18 08:41", { how: "typed", name: "Linh Tran" }], ["Robert McKinnon", "2026-11-18 21:05", { how: "typed", name: "Robert McKinnon" }]],
+      opened: { "Aisha Rahman": "2026-11-18 12:10" } }
+  };
+  var SIGNPAD = {};
+  function sigFields() {
+    return '<fieldset class="sig" data-sig><legend>Your signature</legend><div class="sig-tabs" role="group" aria-label="How to sign"><button type="button" class="btn btn-sm" data-sigmode="typed" aria-pressed="true">Type</button><button type="button" class="btn btn-sm" data-sigmode="drawn" aria-pressed="false">Draw</button></div>' +
+      '<div data-sigpane="typed"><label class="small">Type your full name<input type="text" class="sig-name" autocomplete="off" placeholder="' + esc(ME[state.role][0]) + '"></label><div class="sig-typed sig-preview" aria-hidden="true"></div></div>' +
+      '<div data-sigpane="drawn" hidden><canvas class="sig-pad" aria-label="Signature box. Draw with your mouse, finger or pen."></canvas><div class="row-btns" style="align-items:center"><span class="small muted">Sign with your mouse, finger or pen.</span><button type="button" class="btn btn-sm" data-sigclear>Clear</button></div></div>' +
+      '<p class="small muted" style="margin:0">Signing as ' + esc(ME[state.role][0]) + ' · ' + nowStamp() + '. The date, time and your signature are recorded in the audit trail.</p></fieldset>';
+  }
+  function sigHtml(sg, cls) {
+    if (!sg) return "";
+    if (sg.how === "drawn" && sg.img) return '<img class="sig-img ' + cls + '" src="' + sg.img + '" alt="Signature of ' + esc(sg.name) + '">';
+    return '<span class="sig-typed ' + cls + '" title="Typed signature">' + esc(sg.name) + '</span>';
+  }
+  function initSigs(root) {
+    (root || document).querySelectorAll("[data-sig]").forEach(function (box) {
+      if (box.getAttribute("data-ready")) return; box.setAttribute("data-ready", "1");
+      var st = { how: "typed", img: "", drawn: false }; box._sig = st;
+      var cv = box.querySelector("canvas"), ctx = cv.getContext("2d"), down = false;
+      function size() { if (st.drawn) return; var r = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1; if (!r.width) return; cv.width = Math.round(r.width * d); cv.height = Math.round(r.height * d); ctx.setTransform(d, 0, 0, d, 0, 0); ctx.lineWidth = 2.4; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#13315c"; }
+      box.querySelectorAll("[data-sigmode]").forEach(function (b) { b.addEventListener("click", function () { st.how = b.getAttribute("data-sigmode"); box.querySelectorAll("[data-sigmode]").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); }); box.querySelectorAll("[data-sigpane]").forEach(function (p) { p.hidden = p.getAttribute("data-sigpane") !== st.how; }); if (st.how === "drawn") size(); var er = box.querySelector(".sig-err"); if (er) er.remove(); }); });
+      var nm = box.querySelector(".sig-name"), pv = box.querySelector(".sig-preview");
+      nm.addEventListener("input", function () { pv.textContent = nm.value; var e = box.querySelector(".sig-err"); if (e) e.remove(); });
+      function pos(e) { var r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
+      cv.addEventListener("pointerdown", function (e) { e.preventDefault(); size(); down = true; cv.setPointerCapture(e.pointerId); var p = pos(e); ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(p[0] + .1, p[1] + .1); ctx.stroke(); });
+      cv.addEventListener("pointermove", function (e) { if (!down) return; var p = pos(e); ctx.lineTo(p[0], p[1]); ctx.stroke(); });
+      function up() { if (!down) return; down = false; st.drawn = true; st.img = cv.toDataURL("image/png"); var e = box.querySelector(".sig-err"); if (e) e.remove(); }
+      cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+      box.querySelector("[data-sigclear]").addEventListener("click", function () { st.drawn = false; st.img = ""; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height); size(); });
+    });
+  }
+  function readSig(root) {
+    var box = root && root.querySelector("[data-sig]"); if (!box) return null;
+    var st = box._sig, nm = box.querySelector(".sig-name").value.trim();
+    var ok = st.how === "drawn" ? !!st.img : nm.length >= 2;
+    var er = box.querySelector(".sig-err"); if (er) er.remove();
+    if (!ok) { var m = document.createElement("p"); m.className = "small sig-err"; m.setAttribute("role", "alert"); m.textContent = st.how === "drawn" ? "Draw your signature in the box, or switch to Type." : "Type your full name as your signature."; box.appendChild(m); return null; }
+    return st.how === "drawn" ? { how: "drawn", img: st.img, name: ME[state.role][0] } : { how: "typed", name: nm };
+  }
+  new MutationObserver(function () { initSigs(document.getElementById("app")); }).observe(document.getElementById("app"), { childList: true });
+
+  var VICON = {
+    dl: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
+    print: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z"/></svg>',
+    tab: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/></svg>',
+    expand: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
+    full: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 10V8h2M16 14v2h-2"/></svg>'
+  };
+  var vdlg = null, vcur = null, vwarned = false;
+  function fakePage(title) {
+    var paras = ["This document is sample content for the design preview. In the live portal the real file opens here: PDFs, pictures and text files show inside this window, and Word, Excel and PowerPoint files offer a download.", "Directors are expected to read each document before the meeting and to raise questions with the Chair or the Executive Director in advance.", "All board materials are confidential and are shared through the portal only. Please do not forward them by email.", "Questions about this document can be sent through Support in the top menu."];
+    return '<div class="vw-page"><h1>' + esc(title) + '</h1><div class="sub">Sample document · Brockville and District Association for Community Involvement</div>' + ["1. Purpose", "2. Expectations", "3. Confidentiality", "4. Questions"].map(function (h, i) { return '<h2>' + h + '</h2><p>' + paras[i] + '</p>'; }).join("") + '</div>';
+  }
+  function vbtn(k, icon, label) { return '<button type="button" class="btn" data-vw="' + k + '" title="' + label + '" aria-label="' + label + '">' + icon + '<span class="lbl">' + label + '</span></button>'; }
+  function buildViewer() {
+    vdlg = document.createElement("dialog"); vdlg.className = "viewer"; vdlg.setAttribute("aria-labelledby", "vw-t");
+    vdlg.innerHTML = '<div class="vw-head"><div class="vw-title"><b id="vw-t"></b><span id="vw-m"></span></div><div class="vw-tools">' + vbtn("download", VICON.dl, "Download") + vbtn("print", VICON.print, "Print") + vbtn("newtab", VICON.tab, "Open in new tab") + vbtn("expand", VICON.expand, "Expand") + vbtn("full", VICON.full, "Full screen") + '<button type="button" class="btn vw-x" data-vw="close" aria-label="Close" title="Close">✕</button></div></div><div class="vw-body"></div><div class="vw-sign" hidden></div>';
+    document.body.appendChild(vdlg);
+    if (!vdlg.requestFullscreen) vdlg.querySelector('[data-vw="full"]').hidden = true;
+    vdlg.addEventListener("cancel", function (e) { e.preventDefault(); if (document.fullscreenElement) return; vClose(); });
+    vdlg.addEventListener("click", function (e) {
+      if (e.target === vdlg) { vClose(); return; }
+      var b = e.target.closest("[data-vw]"); if (!b) return;
+      var k = b.getAttribute("data-vw");
+      if (k === "close") vClose();
+      if (k === "download") toast("In the live portal this downloads the file.");
+      if (k === "print") toast("In the live portal this opens the print dialog for the document.");
+      if (k === "newtab") toast("In the live portal this opens the document in a new browser tab.");
+      if (k === "expand") { var on = vdlg.classList.toggle("max"); b.querySelector(".lbl").textContent = on ? "Exit expanded view" : "Expand"; }
+      if (k === "full") { if (document.fullscreenElement) document.exitFullscreen(); else vdlg.requestFullscreen().catch(function () { toast("Full screen isn't allowed in this preview window."); }); }
+    });
+    document.addEventListener("fullscreenchange", function () { var b = vdlg.querySelector('[data-vw="full"] .lbl'); b.textContent = document.fullscreenElement === vdlg ? "Exit full screen" : "Full screen"; });
+  }
+  function vPending() {
+    if (!vcur || !canBoard()) return false;
+    if (vcur.doc) return !DOCSIGN[vcur.doc].signed;
+    if (vcur.pack) { var s = state[vcur.pack], docs = vcur.pack === "qa" ? QADOCS : ORIENT; return !s.signed && docs.every(function (d, i) { return s.read[i]; }); }
+    return false;
+  }
+  function vSignForm(heading, statement, hint) {
+    return '<div class="vw-sign-in"><div class="vw-sign-h"><h2>' + esc(heading) + '</h2><button type="button" class="btn btn-primary btn-sm vw-open-sign">Sign now</button></div><p class="small muted">' + esc(hint) + '</p><label class="check"><input type="checkbox" class="vw-ack"> ' + esc(statement) + '</label>' + sigFields() + '<div><button type="button" class="btn btn-primary vw-signbtn">Sign off</button></div></div>';
+  }
+  function vRenderSign() {
+    var box = vdlg.querySelector(".vw-sign"); box.className = "vw-sign"; box.innerHTML = ""; box.hidden = true;
+    if (!vcur || !canBoard()) return;
+    if (vcur.doc) {
+      var d = DOCSIGN[vcur.doc];
+      if (d.signed) { box.classList.add("done"); box.innerHTML = '<div class="vw-sign-in"><p><span class="pill pill-ok">Signed off</span> You signed off on ' + d.signed + '. ' + sigHtml(d.sig, "sig-sm") + ' <button type="button" class="linkbtn" data-toast="In the live portal this opens a printable receipt with your signature.">Print receipt</button></p></div>'; }
+      else { box.classList.add("compact"); box.innerHTML = vSignForm("Sign off on this document", d.statement, "When you have read it, confirm and sign below."); }
+      box.hidden = false;
+    } else if (vcur.pack) {
+      var s = state[vcur.pack], docs = vcur.pack === "qa" ? QADOCS : ORIENT, title = vcur.pack === "qa" ? "Quality Assurance 2026" : "New Director Orientation";
+      var stmt = vcur.pack === "qa" ? "I have reviewed the 2026 Quality Assurance documents and confirm my annual sign-off." : "I have read and understood the New Director Orientation materials.";
+      if (s.signed) return;
+      var done = docs.filter(function (x, i) { return s.read[i]; }).length;
+      if (done === docs.length) { box.classList.add("compact"); box.innerHTML = vSignForm(title + " sign-off", stmt, "You have opened every document. Confirm and sign below."); }
+      else {
+        box.innerHTML = '<div class="vw-sign-in"><div class="vw-sign-h"><h2>' + esc(title) + ' sign-off</h2></div><p class="small muted">' + done + ' of ' + docs.length + ' documents opened. Open each one, then sign off here.</p><div class="row-btns">' + docs.map(function (x, i) { return s.read[i] ? "" : '<button type="button" class="btn btn-sm" data-vnext="' + i + '">Next: ' + esc(x[0]) + '</button>'; }).join("") + '</div></div>';
+      }
+      box.hidden = false;
+    }
+    initSigs(box);
+    var open = box.querySelector(".vw-open-sign"); if (open) open.addEventListener("click", function () { box.classList.remove("compact"); var c = box.querySelector(".vw-ack"); if (c) c.focus(); });
+    box.querySelectorAll("[data-vnext]").forEach(function (b) { b.addEventListener("click", function () { var i = Number(b.getAttribute("data-vnext")), docs = vcur.pack === "qa" ? QADOCS : ORIENT; state[vcur.pack].read[i] = true; render(true); openViewer({ title: docs[i][0], meta: docs[i][1], pack: vcur.pack }); }); });
+    var sb = box.querySelector(".vw-signbtn"); if (sb) sb.addEventListener("click", function () {
+      var ack = box.querySelector(".vw-ack");
+      if (!ack.checked) { toast("Tick the box to confirm, then sign off."); ack.focus(); return; }
+      var sg = readSig(box); if (!sg) return;
+      var stamp = nowStamp();
+      if (vcur.doc) { var dd = DOCSIGN[vcur.doc]; dd.signed = stamp; dd.sig = sg; dd.signers.push([ME[state.role][0], stamp, sg]); toast("Signed off on “" + dd.title + "” at " + stamp.slice(11) + ". A confirmation has been emailed to you. (Preview: no email sent.)"); }
+      else { var k = vcur.pack; state[k].signed = stamp; state[k].sig = sg; state.audit.push({ name: ME[state.role][0], section: k === "qa" ? "Quality Assurance 2026" : "New Director Orientation", when: stamp, sig: sg }); toast("Signed off at " + stamp.slice(11) + ". Recorded in the audit trail."); }
+      vReallyClose(); render(true);
+    });
+  }
+  function vReallyClose() { if (document.fullscreenElement) document.exitFullscreen().catch(function () {}); vdlg.close(); vdlg.classList.remove("max"); vcur = null; }
+  function vClose() {
+    if (vPending() && !vwarned) {
+      vwarned = true;
+      var box = vdlg.querySelector(".vw-sign"); box.classList.remove("compact"); box.hidden = false;
+      var w = document.createElement("div"); w.className = "vw-leave"; w.setAttribute("role", "alert");
+      w.innerHTML = "<b>You haven't signed off yet</b><p class=\"small\">This document asks for your sign-off. Sign now, or close and come back to it later from your to-do list.</p><div class=\"row-btns\"><button type=\"button\" class=\"btn btn-primary btn-sm\">Sign now</button><button type=\"button\" class=\"btn btn-sm\">Close, sign later</button></div>";
+      var inner = box.querySelector(".vw-sign-in"); inner.insertBefore(w, inner.firstChild); box.scrollTop = 0;
+      w.querySelector(".btn-primary").addEventListener("click", function () { w.remove(); var c = box.querySelector(".vw-ack"); if (c) c.focus(); });
+      w.querySelector(".btn-primary + .btn").addEventListener("click", vReallyClose);
+      w.querySelector(".btn-primary").focus();
+      return;
+    }
+    vReallyClose();
+  }
+  function openViewer(o) {
+    if (!vdlg) buildViewer();
+    vwarned = false; vcur = o;
+    vdlg.querySelector("#vw-t").textContent = o.title;
+    vdlg.querySelector("#vw-m").textContent = o.meta || ("PDF · " + fmtShort(TODAY) + " · Uploaded 4:12 PM");
+    vdlg.querySelector(".vw-body").innerHTML = fakePage(o.title.replace(/\.[a-z]+$/i, ""));
+    vdlg.querySelector(".vw-body").scrollTop = 0;
+    var ex = vdlg.querySelector('[data-vw="expand"] .lbl'); ex.textContent = "Expand"; vdlg.classList.remove("max");
+    vRenderSign();
+    if (!vdlg.open) vdlg.showModal();
+  }
+  function docTab(on) {
+    var k = Object.keys(DOCSIGN).length;
+    return '<button data-atab="docs" aria-pressed="' + on + '">Document sign-offs <span class="tabnum" style="opacity:.75">' + k + '</span></button>';
+  }
+  function viewDocSignoffs() {
+    var tabs = '<div class="years" role="group" aria-label="Sign-off" style="margin-bottom:16px">' + Object.keys(SIGNOFFS).map(function (k) {
+      var l = SIGNOFFS[k].list(), d = l.filter(function (p) { return signedRec(k, p[0]); }).length;
+      return '<button data-atab="' + k + '" aria-pressed="false">' + SIGNOFFS[k].title + ' <span class="tabnum" style="opacity:.75">' + d + '/' + l.length + '</span></button>';
+    }).join("") + docTab(true) + '</div>';
+    var panels = Object.keys(DOCSIGN).map(function (k) {
+      var d = DOCSIGN[k], signedNames = d.signers.map(function (x) { return x[0]; });
+      var pend = BOARD.filter(function (p) { return signedNames.indexOf(p[0]) === -1; });
+      var pct = Math.round(d.signers.length / BOARD.length * 100);
+      var sl = d.signers.map(function (x) { return '<li>' + avatar(x[0], "av-sm") + '<div class="grow"><b>' + esc(x[0]) + '</b><span class="small muted">' + soEmail(x[0]) + '</span></div>' + sigHtml(x[2], "sig-sm") + '<span class="small tabnum" style="text-align:right">' + x[1].slice(0, 10) + '<br><span class="muted">' + x[1].slice(11) + '</span></span></li>'; }).join("");
+      var pl = pend.map(function (p) { var op = d.opened[p[0]]; return '<li>' + avatar(p[0], "av-sm") + '<div class="grow"><b>' + esc(p[0]) + '</b><span class="small muted">' + esc(p[1]) + '</span></div><span class="pill ' + (op ? "pill-other" : "pill-muted") + '">' + (op ? "Opened " + shortDate(op) + " " + op.slice(11) : "Not opened") + '</span></li>'; }).join("");
+      return '<section class="panel"><div class="panel-h"><h2><button class="linkbtn" data-vdoc="' + k + '" style="font:inherit;font-weight:600">' + esc(d.title) + '</button></h2><span class="small muted tabnum">' + d.signers.length + ' of ' + BOARD.length + ' signed</span></div><p class="small muted" style="margin:-4px 0 8px"><i>' + esc(d.statement) + '</i> · Board Members</p><div class="progress" aria-hidden="true"><i style="width:' + pct + '%"></i></div>' +
+        '<div class="so-cols" style="margin-top:12px"><div><h3 class="small"><i class="dot dot-ok"></i> Signed</h3><ul class="list">' + sl + '</ul></div><div><div class="panel-h" style="margin:0"><h3 class="small"><i class="dot dot-warn"></i> Not signed</h3><button class="btn btn-sm" data-toast="Reminder emailed to the ' + pend.length + ' people who have not signed. (Preview: no email sent.)">Email a reminder</button></div><ul class="list">' + pl + '</ul></div></div></section>';
+    }).join("");
+    return adminGuard("admin-audit", head("Sign-off Audit Trail", "Documents that ask people to sign off after reading them in the document viewer: who signed, when, and their signature, and who still needs to.", '<button class="btn btn-sm" data-toast="In the live portal this downloads the document sign-offs as a CSV or PDF.">Export</button>') + tabs + panels);
   }
   var dragOver = false;
   var OK_EXT = ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "jpg", "jpeg", "png"];
@@ -1312,6 +1527,7 @@ kbd { font: 600 .8em var(--font-body); border: 1px solid var(--line); border-bot
       '<div class="field" style="max-width:280px"><label for="up-date">Document date</label><input type="date" id="up-date" value="' + TODAY.getFullYear() + '-' + String(TODAY.getMonth() + 1).padStart(2, "0") + '-' + String(TODAY.getDate()).padStart(2, "0") + '"><span class="small muted">Today unless you change it, e.g. to the meeting date. The upload time is recorded automatically.</span></div>' +
       '<div role="group" aria-labelledby="sec-h"><div class="pick-h"><b id="sec-h">Section</b><span class="small muted">Pick one or more. The file appears in each one.</span></div>' + secPicks + newSecForm + '</div>' +
       '<div role="group" aria-labelledby="who-h"><div class="pick-h"><b id="who-h">Who can open it</b><span class="small muted">Pick one or more. Portal Admins can always open everything.</span></div><div class="picks who">' + whoPicks + '</div><p class="picksum">' + whoSum + '</p></div>' + showsPanel() +
+      '<div class="signask"><label class="check"><input type="checkbox" id="u-asksign"' + (state.askSign ? " checked" : "") + '> Ask people to sign off after reading it</label><span class="small muted">Everyone who can open it is asked to confirm and sign (typed name or drawn signature) in the document viewer. It shows on their to-do list until they sign, and in the Sign-off Audit Trail under Document sign-offs.</span><div class="field"' + (state.askSign ? "" : " hidden") + '><label for="u-signst">Statement people confirm (optional)</label><input id="u-signst" placeholder="I have read and understood this document."></div></div>' +
       '<div><button class="btn btn-primary" type="submit"' + (ready ? "" : " disabled") + '>' + (state.queue.length > 1 ? "Upload " + state.queue.length + " files" : "Upload") + '</button></div></form>';
 
     // history
@@ -1405,7 +1621,8 @@ kbd { font: 600 .8em var(--font-body); border: 1px solid var(--line); border-bot
     var t = e.target.closest("button, a, [data-day]");
     if (!t) return;
     var ds = t.dataset;
-    if (ds.pdf) { toast("Opens “" + ds.pdf + "” in your browser’s PDF viewer."); return; }
+    if (ds.pdf) { openViewer({ title: ds.pdf }); return; }
+    if (ds.vdoc) { openViewer({ title: DOCSIGN[ds.vdoc].title, doc: ds.vdoc }); return; }
     if (ds.toast) { e.preventDefault(); toast(ds.toast); return; }
     if (ds.sso) { toast("Redirecting to " + ds.sso + "… (preview)"); setTimeout(function () { state.signedIn = true; location.hash = "#dashboard"; render(); }, 900); return; }
     if (ds.rsvp) { state.rsvp[ds.rsvp] = ds.val; state.rsvpAt = "at " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); render(true); var det = document.getElementById("evdetail"); if (det && route() === "calendar") { var m = MEETINGS.filter(function (x) { return x.id === ds.rsvp; })[0]; det.innerHTML = eventDetail(m); } toast("RSVP saved: " + ds.val.charAt(0).toUpperCase() + ds.val.slice(1)); return; }
@@ -1421,7 +1638,7 @@ kbd { font: 600 .8em var(--font-body); border: 1px solid var(--line); border-bot
     if (ds.atab) { state.auditTab = ds.atab; render(true); return; }
     if (ds.year) { state.minutesYear = ds.year; render(true); return; }
     if (ds.eyear) { state.eduYear = ds.eyear; render(true); return; }
-    if (ds.read) { state[ds.read].read[ds.i] = true; toast("Opened in your PDF viewer. Marked as opened."); render(true); return; }
+    if (ds.read) { state[ds.read].read[ds.i] = true; render(true); var pd = (ds.read === "qa" ? QADOCS : ORIENT)[ds.i]; openViewer({ title: pd[0], meta: pd[1], pack: ds.read }); return; }
     if (ds.scroll) { var el = document.getElementById(ds.scroll); if (el) el.scrollIntoView({ behavior: "smooth" }); return; }
     if (ds.preset) { state.myPhoto = { type: "preset", id: ds.preset }; render(true); toast("Profile picture updated."); return; }
     if (ds.pf) { state.myPhoto = ds.pf === "initials" ? { type: "initials" } : null; render(true); toast(ds.pf === "initials" ? "Showing your initials." : "Back to the default picture."); return; }
@@ -1474,15 +1691,17 @@ kbd { font: 600 .8em var(--font-body); border: 1px solid var(--line); border-bot
     if (t.id === "forgot") { state.step = "forgot"; render(); return; }
     if (t.id === "restart") { state.step = "password"; render(); return; }
     if (t.id === "sign-orient" || t.id === "sign-qa") {
-      var key = t.id.slice(5), stamp = nowStamp();
-      state[key].signed = stamp;
-      state.audit.push({ name: ME[state.role][0], section: key === "qa" ? "Quality Assurance 2026" : "New Director Orientation", when: stamp });
+      var key = t.id.slice(5), stamp = nowStamp(), sgv = readSig(t.closest(".signoff"));
+      if (!sgv) return;
+      state[key].signed = stamp; state[key].sig = sgv;
+      state.audit.push({ name: ME[state.role][0], section: key === "qa" ? "Quality Assurance 2026" : "New Director Orientation", when: stamp, sig: sgv });
       render(true); toast("Signed off at " + stamp.slice(11) + ". Recorded in the audit trail."); return;
     }
   });
   document.addEventListener("change", function (e) {
     var t = e.target;
     if (t.id === "ack-orient" || t.id === "ack-qa") { document.getElementById("sign-" + t.id.slice(4)).disabled = !t.checked; }
+    if (t.id === "u-asksign") { state.askSign = t.checked; var sf = document.getElementById("u-signst"); if (sf) sf.parentNode.hidden = !t.checked; }
     if (t.id === "pv-role") { state.role = t.value; remember(); render(true); toast("Now viewing as " + t.options[t.selectedIndex].text + "."); }
   });
   document.addEventListener("click", function (e) { var dz = e.target.closest && e.target.closest("#dropzone"); if (dz) document.getElementById("u-file").click(); });

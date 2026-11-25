@@ -19,6 +19,15 @@ class BDACI_PA_Signoffs {
 
 	const OPT = 'bdaci_pa_signoffs';
 
+	/** Pseudo pack for single-document sign-offs (events carry the document ID). */
+	const DOC = 'doc';
+
+	/** Document meta: ask people to sign off after reading. */
+	const META_NEEDS = '_bdaci_signoff';
+
+	/** Document meta: the statement people confirm (optional). */
+	const META_STATEMENT = '_bdaci_signoff_statement';
+
 	/**
 	 * Per-request cache of events.
 	 *
@@ -51,6 +60,7 @@ class BDACI_PA_Signoffs {
 				doc_id bigint(20) unsigned NOT NULL DEFAULT 0,
 				by_user bigint(20) unsigned NOT NULL DEFAULT 0,
 				created_at datetime NOT NULL,
+				detail mediumtext NULL,
 				PRIMARY KEY  (id),
 				KEY pack_user (pack,user_id),
 				KEY created_at (created_at)
@@ -64,6 +74,314 @@ class BDACI_PA_Signoffs {
 	public static function init() {
 		add_action( 'bdaci_pa_document_opened', array( __CLASS__, 'record_open' ), 10, 2 );
 		add_action( 'admin_post_bdaci_pa_signoff_receipt', array( __CLASS__, 'receipt' ) );
+	}
+
+	/* ---------------------------------------------------------------------
+	 * Single-document sign-offs
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * Does this document ask readers to sign off?
+	 *
+	 * @param int $doc_id Document.
+	 * @return bool
+	 */
+	public static function doc_needs( $doc_id ) {
+		return (bool) get_post_meta( $doc_id, self::META_NEEDS, true );
+	}
+
+	/**
+	 * Statement people confirm for a document.
+	 *
+	 * @param int $doc_id Document.
+	 * @return string
+	 */
+	public static function doc_statement( $doc_id ) {
+		$s = trim( (string) get_post_meta( $doc_id, self::META_STATEMENT, true ) );
+		/* translators: %s: document title */
+		return '' !== $s ? $s : sprintf( __( 'I have read and understood "%s".', 'bdaci-portal-access' ), get_the_title( $doc_id ) );
+	}
+
+	/**
+	 * Turn the sign-off request on or off for a document.
+	 *
+	 * @param int    $doc_id    Document.
+	 * @param bool   $on        On.
+	 * @param string $statement Statement ('' = default).
+	 */
+	public static function set_doc_needs( $doc_id, $on, $statement = '' ) {
+		if ( $on ) {
+			update_post_meta( $doc_id, self::META_NEEDS, 1 );
+		} else {
+			delete_post_meta( $doc_id, self::META_NEEDS );
+		}
+		$statement = trim( sanitize_text_field( $statement ) );
+		if ( '' !== $statement ) {
+			update_post_meta( $doc_id, self::META_STATEMENT, mb_substr( $statement, 0, 300 ) );
+		} else {
+			delete_post_meta( $doc_id, self::META_STATEMENT );
+		}
+	}
+
+	/**
+	 * A person's status for one document: opened and signed times, and the signature.
+	 *
+	 * @param int $doc_id  Document.
+	 * @param int $user_id User.
+	 * @return array opened, signed, detail
+	 */
+	public static function doc_status( $doc_id, $user_id ) {
+		$s = array(
+			'opened' => '',
+			'signed' => '',
+			'detail' => array(),
+		);
+		foreach ( self::events( self::DOC ) as $e ) {
+			if ( (int) $e->doc_id !== (int) $doc_id || (int) $e->user_id !== (int) $user_id ) {
+				continue;
+			}
+			if ( 'opened' === $e->event && ! $s['opened'] ) {
+				$s['opened'] = $e->created_at;
+			} elseif ( 'signed' === $e->event && ! $s['signed'] ) {
+				$s['signed'] = $e->created_at;
+				$s['detail'] = self::detail( $e );
+			}
+		}
+		return $s;
+	}
+
+	/**
+	 * People who are asked to sign a document: active portal members who can open it.
+	 *
+	 * @param int $doc_id Document.
+	 * @return WP_User[]
+	 */
+	public static function doc_recipients( $doc_id ) {
+		$out = array();
+		foreach ( BDACI_PA_Members::all() as $row ) {
+			if ( BDACI_PA_Members::ACTIVE !== $row->status ) {
+				continue;
+			}
+			$u = $row->user_id ? get_userdata( $row->user_id ) : get_user_by( 'email', $row->email );
+			if ( $u && ! isset( $out[ $u->ID ] ) && BDACI_PA_Sections::can_open( $doc_id, $u->ID ) ) {
+				$out[ $u->ID ] = $u;
+			}
+		}
+		uasort( $out, static function ( $a, $b ) { return strcasecmp( $a->display_name, $b->display_name ); } );
+		return array_values( $out );
+	}
+
+	/**
+	 * Does this person still have to sign this document?
+	 *
+	 * @param int $doc_id  Document.
+	 * @param int $user_id User.
+	 * @return bool
+	 */
+	public static function doc_needs_action( $doc_id, $user_id ) {
+		return $user_id && self::doc_needs( $doc_id ) && BDACI_PA_Members::is_authorized( $user_id ) && BDACI_PA_Sections::can_open( $doc_id, $user_id ) && ! self::doc_status( $doc_id, $user_id )['signed'];
+	}
+
+	/**
+	 * Documents that ask for a sign-off.
+	 *
+	 * @return WP_Post[]
+	 */
+	public static function sign_docs() {
+		return get_posts(
+			array(
+				'post_type'        => 'attachment',
+				'post_status'      => 'inherit',
+				'numberposts'      => 200,
+				'orderby'          => 'date',
+				'order'            => 'DESC',
+				'meta_key'         => self::META_NEEDS, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_value'       => '1', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'suppress_filters' => true,
+				'bdaci_pa_all'     => true,
+			)
+		);
+	}
+
+	/**
+	 * Documents this person still has to sign.
+	 *
+	 * @param int $user_id User.
+	 * @return WP_Post[]
+	 */
+	public static function docs_to_sign( $user_id ) {
+		return array_values(
+			array_filter(
+				self::sign_docs(),
+				static function ( $d ) use ( $user_id ) {
+					return self::doc_needs_action( $d->ID, $user_id );
+				}
+			)
+		);
+	}
+
+	/**
+	 * Signature sent with a sign-off form: typed name or a drawn picture.
+	 *
+	 * @param string $statement The statement confirmed.
+	 * @return array|WP_Error
+	 */
+	public static function signature_from_post( $statement ) {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Verified in BDACI_PA_Portal::handle().
+		$how  = isset( $_POST['sig_how'] ) ? sanitize_key( wp_unslash( $_POST['sig_how'] ) ) : '';
+		$name = isset( $_POST['sig_name'] ) ? trim( sanitize_text_field( wp_unslash( $_POST['sig_name'] ) ) ) : '';
+		$img  = isset( $_POST['sig_img'] ) ? trim( (string) wp_unslash( $_POST['sig_img'] ) ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Decoded and checked as a PNG below.
+		// phpcs:enable
+		$user = wp_get_current_user();
+		$out  = array(
+			'how'       => 'drawn' === $how ? 'drawn' : 'typed',
+			'name'      => mb_substr( $name, 0, 80 ),
+			'statement' => $statement,
+			'ip'        => isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '',
+		);
+		if ( 'drawn' === $out['how'] ) {
+			if ( ! preg_match( '#^data:image/png;base64,([A-Za-z0-9+/=]+)$#', $img, $m ) || strlen( $m[1] ) > 400000 ) {
+				return new WP_Error( 'sig', __( 'Draw your signature in the box, or switch to Type and type your name.', 'bdaci-portal-access' ) );
+			}
+			$bin  = base64_decode( $m[1], true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+			$info = $bin ? @getimagesizefromstring( $bin ) : false; // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			if ( ! $info || IMAGETYPE_PNG !== $info[2] || $info[0] > 2000 || $info[1] > 1000 || strlen( $bin ) < 200 ) {
+				return new WP_Error( 'sig', __( 'Draw your signature in the box, or switch to Type and type your name.', 'bdaci-portal-access' ) );
+			}
+			$out['img'] = 'data:image/png;base64,' . base64_encode( $bin ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+			$out['name'] = $user->display_name; // A drawn signature is always in the signed-in person's name.
+		} elseif ( mb_strlen( $out['name'] ) < 2 ) {
+			return new WP_Error( 'sig', __( 'Type your full name as your signature.', 'bdaci-portal-access' ) );
+		}
+		return $out;
+	}
+
+	/**
+	 * Signature details stored with a "signed" event.
+	 *
+	 * @param object $e Event row.
+	 * @return array
+	 */
+	public static function detail( $e ) {
+		$d = isset( $e->detail ) && $e->detail ? json_decode( (string) $e->detail, true ) : array();
+		return is_array( $d ) ? $d : array();
+	}
+
+	/**
+	 * A signature for display: the drawn picture or the typed name in script.
+	 *
+	 * @param array  $d     Detail.
+	 * @param string $class Extra class.
+	 * @return string HTML.
+	 */
+	public static function signature_html( array $d, $class = '' ) {
+		if ( ! $d ) {
+			return '';
+		}
+		if ( 'drawn' === ( $d['how'] ?? '' ) && ! empty( $d['img'] ) && 0 === strpos( $d['img'], 'data:image/png;base64,' ) ) {
+			return '<img class="sig-img ' . esc_attr( $class ) . '" src="' . esc_attr( $d['img'] ) . '" alt="' . esc_attr( sprintf( /* translators: %s: name */ __( 'Signature of %s', 'bdaci-portal-access' ), $d['name'] ?? '' ) ) . '">';
+		}
+		return '<span class="sig-typed ' . esc_attr( $class ) . '" title="' . esc_attr__( 'Typed signature', 'bdaci-portal-access' ) . '">' . esc_html( $d['name'] ?? '' ) . '</span>';
+	}
+
+	/**
+	 * Signature fields for a sign-off form (typed or drawn).
+	 *
+	 * @param string $id_prefix Unique id prefix.
+	 * @return string HTML.
+	 */
+	public static function sig_fields( $id_prefix ) {
+		$u  = wp_get_current_user();
+		$id = esc_attr( $id_prefix );
+		return '<fieldset class="sig" data-sig><legend>' . esc_html__( 'Your signature', 'bdaci-portal-access' ) . '</legend>' .
+			'<div class="sig-tabs" role="group" aria-label="' . esc_attr__( 'How to sign', 'bdaci-portal-access' ) . '"><button type="button" class="btn btn-sm" data-sig-mode="typed" aria-pressed="true">' . esc_html__( 'Type', 'bdaci-portal-access' ) . '</button><button type="button" class="btn btn-sm" data-sig-mode="drawn" aria-pressed="false">' . esc_html__( 'Draw', 'bdaci-portal-access' ) . '</button></div>' .
+			'<div data-sig-pane="typed"><label class="small" for="' . $id . '-name">' . esc_html__( 'Type your full name', 'bdaci-portal-access' ) . '</label><input id="' . $id . '-name" name="sig_name" autocomplete="name" maxlength="80" value="" placeholder="' . esc_attr( $u->display_name ) . '"><div class="sig-typed sig-preview" aria-hidden="true"></div></div>' .
+			'<div data-sig-pane="drawn" hidden><canvas class="sig-pad" width="600" height="170" aria-label="' . esc_attr__( 'Signature box. Draw with your mouse, finger or pen.', 'bdaci-portal-access' ) . '"></canvas><div class="row-btns"><span class="small muted">' . esc_html__( 'Sign with your mouse, finger or pen.', 'bdaci-portal-access' ) . '</span><button type="button" class="btn btn-sm" data-sig-clear>' . esc_html__( 'Clear', 'bdaci-portal-access' ) . '</button></div></div>' .
+			'<input type="hidden" name="sig_how" value="typed"><input type="hidden" name="sig_img" value="">' .
+			'<p class="small muted sig-when">' . esc_html( sprintf( /* translators: 1: name, 2: date and time */ __( 'Signing as %1$s · %2$s. The date, time and your signature are recorded in the audit trail.', 'bdaci-portal-access' ), $u->display_name, date_i18n( 'M j, Y g:i A' ) ) ) . '</p></fieldset>';
+	}
+
+	/**
+	 * Sign one document (from the document viewer).
+	 *
+	 * @param int $user_id User.
+	 */
+	public static function handle_doc_sign( $user_id ) {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Verified in BDACI_PA_Portal::handle().
+		$doc = isset( $_POST['doc'] ) ? absint( $_POST['doc'] ) : 0;
+		$ack = ! empty( $_POST['ack'] );
+		// phpcs:enable
+		if ( ! $doc || ! get_post_meta( $doc, BDACI_PA_Documents::META_PRIVATE, true ) || ! BDACI_PA_Sections::can_open( $doc, $user_id ) || ! self::doc_needs( $doc ) ) {
+			BDACI_PA_Portal::flash( __( 'This document does not need your sign-off.', 'bdaci-portal-access' ), 'err' );
+			return;
+		}
+		$st = self::doc_status( $doc, $user_id );
+		if ( $st['signed'] ) {
+			BDACI_PA_Portal::flash( __( 'You have already signed off on this document.', 'bdaci-portal-access' ) );
+			return;
+		}
+		if ( ! $st['opened'] ) {
+			BDACI_PA_Portal::flash( __( 'Open the document before signing off.', 'bdaci-portal-access' ), 'err' );
+			return;
+		}
+		if ( ! $ack ) {
+			BDACI_PA_Portal::flash( __( 'Tick the box to confirm, then sign off.', 'bdaci-portal-access' ), 'err' );
+			return;
+		}
+		$statement = self::doc_statement( $doc );
+		$sig       = self::signature_from_post( $statement );
+		if ( is_wp_error( $sig ) ) {
+			BDACI_PA_Portal::flash( $sig->get_error_message(), 'err' );
+			return;
+		}
+		$sig['doc'] = get_the_title( $doc );
+		self::add( self::DOC, $user_id, 'signed', $doc, $sig );
+		$user = get_userdata( $user_id );
+		BDACI_PA_Log::add( 'document_signed', $user->user_email, $user_id, get_the_title( $doc ) );
+		/* translators: 1: name, 2: document, 3: date and time, 4: statement, 5: signature */
+		$body = sprintf( __( "%1\$s signed off on \"%2\$s\" on %3\$s.\n\nStatement: %4\$s\nSignature: %5\$s\n\nThis is recorded in the portal's sign-off audit trail.", 'bdaci-portal-access' ), $user->display_name, get_the_title( $doc ), self::fmt( current_time( 'mysql' ) ), $statement, self::sig_text( $sig ) );
+		/* translators: 1: document, 2: name */
+		wp_mail( $user->user_email, sprintf( __( 'Sign-off confirmation: %1$s (%2$s)', 'bdaci-portal-access' ), get_the_title( $doc ), $user->display_name ), $body );
+		/* translators: %s: document */
+		BDACI_PA_Portal::flash( sprintf( __( 'Signed off on "%s". A confirmation has been emailed to you.', 'bdaci-portal-access' ), get_the_title( $doc ) ) );
+	}
+
+	/**
+	 * Email everyone who still has to sign a document.
+	 *
+	 * @param int $doc_id Document.
+	 * @return int Number emailed.
+	 */
+	public static function doc_remind( $doc_id ) {
+		$n = 0;
+		foreach ( self::doc_recipients( $doc_id ) as $u ) {
+			if ( self::doc_status( $doc_id, $u->ID )['signed'] ) {
+				continue;
+			}
+			/* translators: %s: document */
+			$subject = sprintf( __( 'Reminder: please read and sign off on %s', 'bdaci-portal-access' ), get_the_title( $doc_id ) );
+			/* translators: 1: name, 2: document, 3: link */
+			$body = sprintf( __( "Hello %1\$s,\n\nPlease read \"%2\$s\" in the BDACI portal and sign off. It is on your to-do list on the portal Home page.\n\n%3\$s\n\nThank you.", 'bdaci-portal-access' ), $u->display_name, get_the_title( $doc_id ), BDACI_PA_Settings::portal_home_url() );
+			wp_mail( $u->user_email, $subject, $body );
+			self::add( self::DOC, $u->ID, 'reminded', $doc_id );
+			++$n;
+		}
+		BDACI_PA_Log::add( 'document_signoff_reminded', '', get_current_user_id(), get_the_title( $doc_id ) . ' (' . $n . ')' );
+		return $n;
+	}
+
+	/**
+	 * "Typed: Jane Doe" / "Drawn by Jane Doe".
+	 *
+	 * @param array $d Detail.
+	 * @return string
+	 */
+	public static function sig_text( array $d ) {
+		if ( ! $d ) {
+			return '';
+		}
+		/* translators: %s: name */
+		return sprintf( 'drawn' === ( $d['how'] ?? '' ) ? __( 'drawn by %s', 'bdaci-portal-access' ) : __( 'typed name "%s"', 'bdaci-portal-access' ), $d['name'] ?? '' );
 	}
 
 	/**
@@ -246,8 +564,9 @@ class BDACI_PA_Signoffs {
 	 * @param int    $user_id User.
 	 * @param string $event   sent|reminded|opened|signed.
 	 * @param int    $doc_id  Document.
+	 * @param array  $detail  Signature details (signed events).
 	 */
-	public static function add( $key, $user_id, $event, $doc_id = 0 ) {
+	public static function add( $key, $user_id, $event, $doc_id = 0, array $detail = array() ) {
 		global $wpdb;
 		$wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 			self::table(),
@@ -258,6 +577,7 @@ class BDACI_PA_Signoffs {
 				'doc_id'     => (int) $doc_id,
 				'by_user'    => get_current_user_id(),
 				'created_at' => current_time( 'mysql' ),
+				'detail'     => $detail ? wp_json_encode( $detail ) : null,
 			)
 		);
 		unset( self::$cache[ $key ] );
@@ -276,6 +596,7 @@ class BDACI_PA_Signoffs {
 			'reminders' => array(),
 			'opened'    => array(),
 			'signed'    => '',
+			'detail'    => array(),
 		);
 		foreach ( self::events( $key ) as $e ) {
 			if ( (int) $e->user_id !== (int) $user_id ) {
@@ -289,6 +610,7 @@ class BDACI_PA_Signoffs {
 				$s['opened'][ (int) $e->doc_id ] = $e->created_at;
 			} elseif ( 'signed' === $e->event ) {
 				$s['signed'] = $e->created_at;
+				$s['detail'] = self::detail( $e );
 			}
 		}
 		return $s;
@@ -312,6 +634,9 @@ class BDACI_PA_Signoffs {
 	 * @param int $user_id User.
 	 */
 	public static function record_open( $doc_id, $user_id ) {
+		if ( self::doc_needs( $doc_id ) && BDACI_PA_Members::is_authorized( $user_id ) && ! self::doc_status( $doc_id, $user_id )['opened'] ) {
+			self::add( self::DOC, $user_id, 'opened', $doc_id );
+		}
 		$secs = BDACI_PA_Sections::doc_sections( $doc_id );
 		foreach ( array_keys( self::packs() ) as $key ) {
 			if ( ! in_array( $key, $secs, true ) || ! self::is_recipient( $key, $user_id ) ) {
@@ -355,13 +680,18 @@ class BDACI_PA_Signoffs {
 			BDACI_PA_Portal::flash( $docs ? __( 'Tick the box to confirm, then sign off.', 'bdaci-portal-access' ) : __( 'There are no documents to sign off yet.', 'bdaci-portal-access' ), 'err' );
 			return;
 		}
-		self::add( $key, $user_id, 'signed' );
+		$sig = self::signature_from_post( $pack['statement'] );
+		if ( is_wp_error( $sig ) ) {
+			BDACI_PA_Portal::flash( $sig->get_error_message(), 'err' );
+			return;
+		}
+		self::add( $key, $user_id, 'signed', 0, $sig );
 		$user = get_userdata( $user_id );
 		$when = current_time( 'mysql' );
 		BDACI_PA_Log::add( 'signed_off', $user->user_email, $user_id, $pack['title'] );
 		$titles = implode( "\n", array_map( static function ( $d ) { return '- ' . get_the_title( $d ); }, $docs ) );
-		/* translators: 1: name, 2: sign-off, 3: date and time, 4: statement, 5: documents */
-		$body    = sprintf( __( "%1\$s signed off on %2\$s on %3\$s.\n\nStatement: %4\$s\n\nDocuments:\n%5\$s\n\nThis is recorded in the portal's sign-off audit trail.", 'bdaci-portal-access' ), $user->display_name, $pack['title'], self::fmt( $when ), $pack['statement'], $titles );
+		/* translators: 1: name, 2: sign-off, 3: date and time, 4: statement, 5: documents, 6: signature */
+		$body    = sprintf( __( "%1\$s signed off on %2\$s on %3\$s.\n\nStatement: %4\$s\nSignature: %6\$s\n\nDocuments:\n%5\$s\n\nThis is recorded in the portal's sign-off audit trail.", 'bdaci-portal-access' ), $user->display_name, $pack['title'], self::fmt( $when ), $pack['statement'], $titles, self::sig_text( $sig ) );
 		/* translators: 1: sign-off, 2: name */
 		$subject = sprintf( __( 'Sign-off confirmation: %1$s (%2$s)', 'bdaci-portal-access' ), $pack['title'], $user->display_name );
 		$headers = array();
@@ -485,6 +815,9 @@ class BDACI_PA_Signoffs {
 		$key = isset( $_GET['pack'] ) ? sanitize_key( wp_unslash( $_GET['pack'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		check_admin_referer( 'bdaci_pa_receipt_' . $key );
 		$uid  = get_current_user_id();
+		if ( self::DOC === $key ) {
+			self::doc_receipt( $uid );
+		}
 		$pack = self::pack( $key );
 		if ( ! $pack || ! BDACI_PA_Members::is_authorized( $uid ) ) {
 			wp_die( esc_html__( 'Not found.', 'bdaci-portal-access' ), '', array( 'response' => 404 ) );
@@ -499,7 +832,27 @@ class BDACI_PA_Signoffs {
 			$pack['title'] . ' – ' . $user->display_name,
 			'<h1>' . esc_html( $pack['title'] ) . '</h1><p><b>' . esc_html( $user->display_name ) . '</b> (' . esc_html( $user->user_email ) . ')</p>' .
 			'<p>' . ( $st['signed'] ? esc_html( sprintf( /* translators: %s: date */ __( 'Signed off on %s.', 'bdaci-portal-access' ), self::fmt( $st['signed'] ) ) ) : esc_html__( 'Not signed yet.', 'bdaci-portal-access' ) ) . '</p>' .
-			'<p><i>' . esc_html( $pack['statement'] ) . '</i></p><table><thead><tr><th>' . esc_html__( 'Document', 'bdaci-portal-access' ) . '</th><th>' . esc_html__( 'Opened', 'bdaci-portal-access' ) . '</th></tr></thead><tbody>' . $rows . '</tbody></table>'
+			'<p><i>' . esc_html( $st['detail']['statement'] ?? $pack['statement'] ) . '</i></p>' . ( $st['detail'] ? '<p>' . esc_html__( 'Signature:', 'bdaci-portal-access' ) . '<br>' . self::signature_html( $st['detail'] ) . '</p>' : '' ) . '<table><thead><tr><th>' . esc_html__( 'Document', 'bdaci-portal-access' ) . '</th><th>' . esc_html__( 'Opened', 'bdaci-portal-access' ) . '</th></tr></thead><tbody>' . $rows . '</tbody></table>'
+		);
+	}
+
+	/**
+	 * Printable receipt for one signed document.
+	 *
+	 * @param int $uid User.
+	 */
+	private static function doc_receipt( $uid ) {
+		$doc = isset( $_GET['doc'] ) ? absint( $_GET['doc'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checked by the caller.
+		if ( ! $doc || ! BDACI_PA_Members::is_authorized( $uid ) || ! BDACI_PA_Sections::can_open( $doc, $uid ) ) {
+			wp_die( esc_html__( 'Not found.', 'bdaci-portal-access' ), '', array( 'response' => 404 ) );
+		}
+		$st   = self::doc_status( $doc, $uid );
+		$user = wp_get_current_user();
+		self::print_page(
+			get_the_title( $doc ) . ' – ' . $user->display_name,
+			'<h1>' . esc_html__( 'Document sign-off', 'bdaci-portal-access' ) . '</h1><p><b>' . esc_html( get_the_title( $doc ) ) . '</b></p><p><b>' . esc_html( $user->display_name ) . '</b> (' . esc_html( $user->user_email ) . ')</p>' .
+			'<table><tbody><tr><th>' . esc_html__( 'Opened', 'bdaci-portal-access' ) . '</th><td>' . esc_html( $st['opened'] ? self::fmt( $st['opened'] ) : '-' ) . '</td></tr><tr><th>' . esc_html__( 'Signed', 'bdaci-portal-access' ) . '</th><td>' . esc_html( $st['signed'] ? self::fmt( $st['signed'] ) : __( 'Not signed yet.', 'bdaci-portal-access' ) ) . '</td></tr>' .
+			'<tr><th>' . esc_html__( 'Statement', 'bdaci-portal-access' ) . '</th><td><i>' . esc_html( $st['detail']['statement'] ?? self::doc_statement( $doc ) ) . '</i></td></tr>' . ( $st['detail'] ? '<tr><th>' . esc_html__( 'Signature', 'bdaci-portal-access' ) . '</th><td>' . self::signature_html( $st['detail'] ) . '</td></tr>' : '' ) . '</tbody></table>'
 		);
 	}
 
@@ -513,7 +866,7 @@ class BDACI_PA_Signoffs {
 		nocache_headers();
 		header( 'Content-Type: text/html; charset=utf-8' );
 		echo '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' . esc_html( $title ) . '</title>';
-		echo '<style>body{font:14px/1.5 "Open Sans",Arial,sans-serif;color:#1c2a36;margin:32px;max-width:960px}h1{font:600 22px Ubuntu,Arial,sans-serif;margin:0 0 8px}h2{font:600 17px Ubuntu,Arial,sans-serif;margin:24px 0 8px}table{border-collapse:collapse;width:100%;margin-top:12px}th,td{text-align:left;border-bottom:1px solid #d8dfe6;padding:6px 8px;vertical-align:top}th{font-size:12px;text-transform:uppercase;color:#566573}.logo{height:48px;margin-bottom:16px}.muted{color:#566573}.noprint{margin-bottom:16px}@media print{.noprint{display:none}body{margin:0}}</style></head><body>';
+		echo '<style>body{font:14px/1.5 "Open Sans",Arial,sans-serif;color:#1c2a36;margin:32px;max-width:960px}h1{font:600 22px Ubuntu,Arial,sans-serif;margin:0 0 8px}h2{font:600 17px Ubuntu,Arial,sans-serif;margin:24px 0 8px}table{border-collapse:collapse;width:100%;margin-top:12px}th,td{text-align:left;border-bottom:1px solid #d8dfe6;padding:6px 8px;vertical-align:top}th{font-size:12px;text-transform:uppercase;color:#566573}.sig-img{max-height:70px;max-width:260px}.sig-typed{font:italic 28px "Segoe Script","Brush Script MT","Snell Roundhand","Apple Chancery",cursive}.logo{height:48px;margin-bottom:16px}.muted{color:#566573}.noprint{margin-bottom:16px}@media print{.noprint{display:none}body{margin:0}}</style></head><body>';
 		echo '<p class="noprint"><button onclick="window.print()">' . esc_html__( 'Print or save as PDF', 'bdaci-portal-access' ) . '</button></p>';
 		echo '<img class="logo" src="' . esc_url( BDACI_PA_URL . 'assets/logo-full.png' ) . '" alt="">';
 		echo $body; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped by the caller.

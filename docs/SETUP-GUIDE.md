@@ -122,7 +122,7 @@ There are two sign-offs: **New Director Orientation** and **Quality Assurance {y
 1. File the documents under the New Director Orientation or Quality Assurance section (step 6).
 2. Open **Sign-off settings** on this screen to change the title, intro text, the statement people confirm, the due date, who must sign (roles or named people) and the CC address for confirmation emails (QA copies afenlong@bdaci.com by default).
 3. Click **Send** next to a person, or **Send to … people not sent yet**, to email them a link. **Remind** / **Remind all** send reminders.
-4. In the portal, the person must **open every document** before the "I have read and understood" box and **Sign off** button unlock. They get a confirmation email (with the CC) and can print a receipt.
+4. In the portal, the person must **open every document** before the "I have read and understood" box and **Sign off** button unlock. They sign by typing their name or drawing a signature (mouse, finger or pen). They can also sign right inside the document viewer once they have opened every document. They get a confirmation email (with the CC) and can print a receipt that shows the signature.
 5. This screen shows who has signed, who hasn't, when each was sent, every reminder, each document opened and each signature, with **Export CSV** and **Print / save as PDF**. "Start a new round" (for next year's QA) clears the current status but keeps the history in the log.
 
 ## 9. What members see
@@ -143,11 +143,24 @@ Site administrators get a **Test data** screen for trying the portal before laun
 * **Remove all test data** deletes only what that button added. Anything you created yourself stays.
 * **Get ready for launch** (type RESET to confirm) clears all RSVPs, sign-off history, access requests and the activity log, and by default removes the test data first. People, meetings, documents, pages and settings you created are kept. Use it once, just before you invite the real board.
 
+## 8a. Document viewer and single-document sign-offs (new in 2.11)
+
+**The viewer.** Every document in the portal (sections, meetings, sign-off pages, the Home to-do list and `[bdaci_document]` links) now opens in a pop-up viewer instead of a new tab. The viewer has **Download**, **Print**, **Open in new tab**, **Expand** (fills the browser window) and **Full screen**. PDFs, pictures and text files show inside it. Word, Excel and PowerPoint files can't be shown in a browser, so the viewer offers a download instead. Holding Ctrl / ⌘ while clicking still opens the file in a new tab.
+
+**Ask people to sign off on a document.**
+1. When uploading, or later from **Edit, rename or move** on the document, tick **Ask people to sign off after reading it**. Optionally change the statement people confirm (default: *I have read and understood "title".*).
+2. Everyone who can open that document gets a **Sign-off** item on their Home to-do list.
+3. In the viewer, a folded bar at the bottom says **Sign off on this document** with a **Sign now** button, so the document stays easy to read. They tick the statement and sign by typing their name (shown in script) or drawing a signature.
+4. If they try to close the viewer (✕, Esc or clicking outside) without signing, it asks first: **Sign now** or **Close, sign later**.
+5. They get a confirmation email and a printable receipt with the signature. The document then shows a **Signed** pill.
+
+**Audit.** Sign-off Audit Trail › **Document sign-offs** lists each document with who signed (signature, date and time) and who hasn't (opened or not opened yet), with **Email a reminder**, **Export CSV** and **Print / save as PDF**. Each document in Sections & Uploads shows "Sign-off: X of Y signed".
+
 ## 9b. QA Testing (BDACI Portal → QA Testing)
 
 A built-in checklist for your team to test the portal before launch. Open it from Portal admin › QA Testing, or WordPress admin › BDACI Portal › QA Testing.
 
-- **Test scenarios tab.** Scenarios are grouped by topic (Sign-in, Roles and access, Home and calendar, Meetings, Documents, Sign-offs, Admin, Profile, Devices). Each group tab shows how many are done and how many failed. Filter chips show All, Not tested, Failed, or Marked by me. Each scenario has steps and the expected result; mark it Passed, Failed or Skipped and add a note. The card shows who marked it and when, plus the full history for the round.
+- **Test scenarios tab.** Scenarios are grouped by topic (Sign-in, Roles and access, Home and calendar, Meetings, Documents, Sign-offs, Admin, Profile, Devices). Each group tab shows how many are done and how many failed. Filter chips show All, Not tested, Failed, or Marked by me. Each scenario has steps and the expected result; mark it Passed, Failed or Skipped and add a note. The card shows who marked it and when, plus the full history for the round. Version 2.11 adds scenarios for the document viewer, signing inside it, drawn signatures, the close warning, asking for a sign-off on upload and the Document sign-offs audit.
 - **Where to find it.** Every scenario shows a breadcrumb such as *Portal › Portal admin › Meetings* and an **Open** button that opens that page in a new tab.
 - **Notes and screenshots.** Type a note, then add screenshots with **Add screenshots**, by pasting into the note box (Ctrl+V / ⌘+V), or by dropping files on the card. Pressing Passed, Failed or Skipped saves them with the result; **Save note only** adds them without changing the result. PNG, JPG, GIF or WebP, up to 8 MB each and 6 at a time. Screenshots are stored in the protected documents folder and open only for people who can see QA Testing.
 - **QA record tab.** Every check ever made in the round, newest first, with tester, time, result, note and screenshots. Filter by group, tester or result.

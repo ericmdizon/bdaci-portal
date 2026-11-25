@@ -586,6 +586,9 @@ class BDACI_PA_Admin {
 				BDACI_PA_Sections::set_doc_sections( $id, $secs );
 			}
 			update_post_meta( $id, '_bdaci_doc_date', $date );
+			if ( ! empty( $_POST['ask_sign'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Checked above.
+				BDACI_PA_Signoffs::set_doc_needs( $id, true, isset( $_POST['sign_statement'] ) ? sanitize_text_field( wp_unslash( $_POST['sign_statement'] ) ) : '' ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			}
 			BDACI_PA_Log::add( 'document_uploaded', '', get_current_user_id(), $this_title . ' (' . $level . ')' );
 		}
 

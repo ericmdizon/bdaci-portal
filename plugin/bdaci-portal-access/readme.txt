@@ -1,7 +1,7 @@
 === BDACI Portal Access ===
 Requires at least: 6.2
 Requires PHP: 7.4
-Stable tag: 2.10.0
+Stable tag: 2.11.0
 License: GPLv2 or later
 
 Restricts the BDACI Board & Committee Governance Portal to authorized users.
@@ -26,6 +26,14 @@ Shortcodes:
 See SETUP-GUIDE.md for installation and Microsoft/Google setup.
 
 == Changelog ==
+
+= 2.11.0 =
+* Document viewer: documents open in a pop-up in the portal instead of a new tab, with Expand, Full screen, Print, Download and Open in new tab. PDFs, pictures and text files show inside it; Word, Excel and PowerPoint files offer a download.
+* Sign-off in the viewer: when a document asks for a sign-off, the viewer shows the statement, a confirm box and a signature (type your name or draw it). Closing without signing asks first ("Sign now" or "Close, sign later").
+* Sign-off packs (New Director Orientation, Quality Assurance) can be signed from the viewer once every document has been opened, with "Next" buttons for the ones still to open. The sign-off page asks for a signature too.
+* Sections & Uploads: "Ask people to sign off after reading it" with an optional statement, on upload and in Edit, rename or move. The document list shows "Sign-off: 2 of 5 signed".
+* Sign-off Audit Trail: new "Document sign-offs" tab with who signed (date, time and signature), who opened it, who hasn't, an "Email a reminder" button, CSV and printable exports. Signatures also show for the sign-off packs, in the CSV and on the printable receipts.
+* Home: documents waiting for your signature are on your to-do list.
 
 = 2.10.0 =
 * Updates from GitHub: new versions show on the Plugins screen like any other plugin update, with "update now" and "View details" (release notes and changelog).

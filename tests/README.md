@@ -1,6 +1,6 @@
 # Tests
 
-`e2e.py` is the end-to-end suite (306 checks on a fresh kit; 300 when the plugin folder is a symlink, which skips the real "update now" install). It runs against the local test site in the BDACI dev kit
+`e2e.py` is the end-to-end suite (341 checks on a fresh kit; 335 when the plugin folder is a symlink, which skips the real "update now" install). It runs against the local test site in the BDACI dev kit
 (`bdaci-portal-dev-kit.zip`: WordPress on SQLite with seeded members, pages and documents). The site itself is not
 kept in this repository because it is a full WordPress install.
 
@@ -25,3 +25,8 @@ so the updater can be tested offline (option `test_fake_gh`), and keeps WordPres
 - `browser_qa.js` (30 checks) clicks through the QA page in Chromium at desktop and phone widths: pasting and dropping
   screenshots, size limits, Save note only, filters, the Open buttons and section search.
   Needs Playwright and an admin cookie file (written by the kit's screenshot helper).
+- `viewer_qa.js` (44 checks) opens documents in the pop-up viewer in Chromium at desktop and phone widths: expand,
+  print and download buttons, the folded sign-off bar, the warning when closing without signing, typed and drawn
+  signatures, Excel files offering a download, and signing a sign-off pack from inside the viewer.
+  `node viewer_qa.js <kit folder> <board cookie file> <PDF document id> <Excel document id>`; both documents must have
+  "Ask people to sign off" ticked.

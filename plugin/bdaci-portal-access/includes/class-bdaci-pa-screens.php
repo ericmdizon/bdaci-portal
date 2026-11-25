@@ -109,7 +109,7 @@ class BDACI_PA_Screens {
 		foreach ( $def as $k => $label ) {
 			$id = (int) $m->$k;
 			if ( $id && get_post( $id ) && BDACI_PA_Sections::can_open( $id ) ) {
-				$out[ $k ] = '<a class="' . esc_attr( $class ) . '" href="' . esc_url( BDACI_PA_Documents::link( $id ) ) . '" target="_blank" rel="noopener">' . self::e( $label ) . '</a>';
+				$out[ $k ] = '<a class="' . esc_attr( $class ) . '" href="' . esc_url( BDACI_PA_Documents::link( $id ) ) . '" target="_blank" rel="noopener"' . BDACI_PA_Portal::view_attrs( $id ) . '>' . self::e( $label ) . '</a>';
 			}
 		}
 		return $out;
@@ -243,6 +243,9 @@ class BDACI_PA_Screens {
 				$sub     = $pack['due'] ? sprintf( /* translators: %s: date */ __( 'Due %s', 'bdaci-portal-access' ), date_i18n( 'F j, Y', strtotime( $pack['due'] ) ) ) : __( 'Read the documents and confirm', 'bdaci-portal-access' );
 				$tasks[] = '<li><span class="pill pill-warn">' . esc_html__( 'Action required', 'bdaci-portal-access' ) . '</span><div class="grow"><b>' . self::e( sprintf( /* translators: %s: sign-off */ __( '%s sign-off', 'bdaci-portal-access' ), $pack['title'] ) ) . '</b><span class="muted small">' . self::e( $sub ) . '</span></div><a class="btn btn-sm" href="' . esc_url( BDACI_PA_Portal::url( $key ) ) . '">' . esc_html__( 'Open', 'bdaci-portal-access' ) . '</a></li>';
 			}
+		}
+		foreach ( BDACI_PA_Signoffs::docs_to_sign( $uid ) as $d ) {
+			$tasks[] = '<li><span class="pill pill-warn">' . esc_html__( 'Sign-off', 'bdaci-portal-access' ) . '</span><div class="grow"><b>' . self::e( get_the_title( $d ) ) . '</b><span class="muted small">' . esc_html__( 'Read the document and sign off', 'bdaci-portal-access' ) . '</span></div><a class="btn btn-sm" href="' . esc_url( BDACI_PA_Documents::link( $d->ID ) ) . '" target="_blank" rel="noopener"' . BDACI_PA_Portal::view_attrs( $d->ID ) . '>' . esc_html__( 'Open', 'bdaci-portal-access' ) . '</a></li>';
 		}
 		if ( $m && ! BDACI_PA_Meetings::rsvp( $m->id, $uid ) ) {
 			$tasks[] = '<li><span class="pill pill-muted">RSVP</span><div class="grow"><b>' . self::e( $m->title ) . '</b><span class="muted small">' . self::e( BDACI_PA_Meetings::fmt_short( $m->starts_at ) ) . '</span></div><a class="btn btn-sm" href="#next">' . esc_html__( 'Respond', 'bdaci-portal-access' ) . '</a></li>';
@@ -625,7 +628,7 @@ class BDACI_PA_Screens {
 			$file   = (string) get_post_meta( $d->ID, '_wp_attached_file', true );
 			$list  .= '<li>' . BDACI_PA_Portal::thumb( get_the_title( $d ), $file, 'qa' === $key ? 'qa' : 'orient' ) . '<div class="grow"><b>' . self::e( get_the_title( $d ) ) . '</b><span class="muted small">' . self::e( BDACI_PA_Portal::doc_when( $d ) ) . '</span></div>' .
 				( $rec ? ( $opened ? '<span class="pill pill-ok" data-so-pill>' . esc_html__( 'Opened', 'bdaci-portal-access' ) . '</span>' : '<span class="pill pill-muted" data-so-pill>' . esc_html__( 'Not opened', 'bdaci-portal-access' ) . '</span>' ) : '' ) .
-				'<a class="btn btn-sm" data-so-open href="' . esc_url( BDACI_PA_Documents::link( $d->ID ) ) . '" target="_blank" rel="noopener">' . esc_html__( 'Open', 'bdaci-portal-access' ) . '</a></li>';
+				'<a class="btn btn-sm" data-so-open href="' . esc_url( BDACI_PA_Documents::link( $d->ID ) ) . '" target="_blank" rel="noopener"' . BDACI_PA_Portal::view_attrs( $d->ID ) . '>' . esc_html__( 'Open', 'bdaci-portal-access' ) . '</a></li>';
 		}
 		$list .= '</ul>';
 		if ( ! $docs ) {
@@ -638,7 +641,7 @@ class BDACI_PA_Screens {
 		} elseif ( $st['signed'] ) {
 			$url  = wp_nonce_url( admin_url( 'admin-post.php?action=bdaci_pa_signoff_receipt&pack=' . $key ), 'bdaci_pa_receipt_' . $key );
 			$cc   = $pack['cc'] ? sprintf( /* translators: %s: email */ __( 'A confirmation copy was emailed to %s and to you.', 'bdaci-portal-access' ), $pack['cc'] ) : __( 'A confirmation was emailed to you.', 'bdaci-portal-access' );
-			$box  = '<section class="signoff done" aria-live="polite"><h2>' . esc_html__( 'Signed off', 'bdaci-portal-access' ) . '</h2><div class="receipt"><span><b>' . self::e( wp_get_current_user()->display_name ) . '</b> ' . esc_html__( 'confirmed on', 'bdaci-portal-access' ) . ' <b class="tabnum">' . self::e( BDACI_PA_Signoffs::fmt( $st['signed'] ) ) . '</b>.</span><span class="muted">' . esc_html__( 'This is recorded in the portal\'s sign-off audit trail.', 'bdaci-portal-access' ) . '</span><span>' . self::e( $cc ) . '</span>';
+			$box  = '<section class="signoff done" aria-live="polite"><h2>' . esc_html__( 'Signed off', 'bdaci-portal-access' ) . '</h2><div class="receipt"><span><b>' . self::e( wp_get_current_user()->display_name ) . '</b> ' . esc_html__( 'confirmed on', 'bdaci-portal-access' ) . ' <b class="tabnum">' . self::e( BDACI_PA_Signoffs::fmt( $st['signed'] ) ) . '</b>.</span>' . ( $st['detail'] ? '<span>' . BDACI_PA_Signoffs::signature_html( $st['detail'] ) . '</span>' : '' ) . '<span class="muted">' . esc_html__( 'This is recorded in the portal\'s sign-off audit trail.', 'bdaci-portal-access' ) . '</span><span>' . self::e( $cc ) . '</span>';
 			$box .= '<div class="row-btns" style="margin-top:6px"><a class="btn btn-sm" href="' . esc_url( $url ) . '" target="_blank" rel="noopener">' . esc_html__( 'Export report (PDF)', 'bdaci-portal-access' ) . '</a></div></div></section>';
 		} else {
 			$read = count( array_intersect( wp_list_pluck( $docs, 'ID' ), array_keys( $st['opened'] ) ) );
@@ -647,6 +650,7 @@ class BDACI_PA_Screens {
 			$inner = '<div class="panel-h" style="margin:0"><h2>' . esc_html__( 'Action required: digital sign-off', 'bdaci-portal-access' ) . '</h2><span class="small tabnum" data-so-count>' . self::e( sprintf( /* translators: 1: opened, 2: total */ __( '%1$d of %2$d opened', 'bdaci-portal-access' ), $read, count( $docs ) ) ) . '</span></div><div class="progress" aria-hidden="true"><i style="width:' . (int) $pct . '%"></i></div>' .
 				'<label class="check"><input type="checkbox" name="ack" value="1" required' . ( $all ? '' : ' disabled' ) . ' data-so-ack> ' . self::e( $pack['statement'] ) . '</label>' .
 				( $all ? '' : '<p class="small muted" data-so-hint>' . esc_html__( 'Open each document above to unlock the sign-off.', 'bdaci-portal-access' ) . '</p>' ) .
+				BDACI_PA_Signoffs::sig_fields( 'bp-so-sig' ) .
 				'<div><button class="btn btn-primary" type="submit"' . ( $all ? '' : ' disabled' ) . ' data-so-btn>' . esc_html__( 'Sign off', 'bdaci-portal-access' ) . '</button></div>';
 			$box = BDACI_PA_Portal::form( 'signoff', array( 'pack' => $key ), $inner, 'class="signoff"' );
 		}
