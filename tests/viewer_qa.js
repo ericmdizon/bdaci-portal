@@ -24,14 +24,21 @@ const B = 'http://localhost:8089';
     check(`${vp.name}: title shown`, (await dlg.locator('#bpv-title').innerText()) === 'FRONT-DOC');
     const src = await dlg.locator('iframe').getAttribute('src');
     check(`${vp.name}: PDF shown inside the viewer`, /bdaci_doc=\d+/.test(src || ''), src);
-    check(`${vp.name}: download button downloads`, /download=1/.test(await dlg.locator('[data-vw=download]').getAttribute('href')));
-    check(`${vp.name}: print and new tab buttons`, await dlg.locator('[data-vw=print]').isVisible() && /bdaci_doc/.test(await dlg.locator('[data-vw=newtab]').getAttribute('href')));
+    check(`${vp.name}: no Download or Print button`, await dlg.locator('[data-vw=download], [data-vw=print]').count() === 0);
+    check(`${vp.name}: new tab button, PDF toolbar hidden`, /bdaci_doc/.test(await dlg.locator('[data-vw=newtab]').getAttribute('href')) && /#toolbar=0/.test(src || ''));
     if (vp.name === 'desktop') {
       await dlg.locator('[data-vw=expand]').click();
       const box = await dlg.boundingBox();
       check('desktop: expand fills the window', box.width >= 1270 && box.height >= 890, box);
       await dlg.locator('[data-vw=expand]').click();
       check('desktop: full screen button offered', await dlg.locator('[data-vw=full]').isVisible());
+      await dlg.locator('[data-vw=full]').click();
+      await pg.waitForFunction(() => !!document.fullscreenElement, null, { timeout: 3000 }).catch(() => {});
+      const fsOn = await pg.evaluate(() => !!document.fullscreenElement && document.querySelector('dialog.bp-viewer').open);
+      check('desktop: full screen works and the viewer stays open', fsOn && /Exit full screen/.test(await dlg.locator('[data-vw=full]').innerText()));
+      await dlg.locator('[data-vw=full]').click();
+      await pg.waitForFunction(() => !document.fullscreenElement, null, { timeout: 3000 }).catch(() => {});
+      check('desktop: leaving full screen keeps the viewer open', await dlg.isVisible() && !(await pg.evaluate(() => !!document.fullscreenElement)));
     } else {
       const box = await dlg.boundingBox();
       check('phone: viewer fills the screen', box.width >= 385, box);
@@ -90,7 +97,7 @@ const B = 'http://localhost:8089';
     const xl = pg.locator(`.todo a[data-view="${XLSX}"]`);
     if (vp.name === 'desktop') {
       await xl.click(); await dlg.waitFor({ state: 'visible' });
-      check('desktop: Excel file offers a download inside the viewer', /can't be shown in the browser/.test(await dlg.locator('.vw-body').innerText()) && !(await dlg.locator('[data-vw=print]').isVisible()));
+      check('desktop: Excel file offers a download inside the viewer', /can't be shown in the browser/.test(await dlg.locator('.vw-body').innerText()) && await dlg.locator('.vw-body a.btn').count() === 1);
       check('desktop: sign hint asks to download first', /Download and read the file/.test(await dlg.locator('.vw-sign').textContent()));
       await dlg.locator('[data-vw=close]').click(); await dlg.locator('.vw-leave button.btn-sm:not(.btn-primary)').click();
       // print for a PDF calls the browser print

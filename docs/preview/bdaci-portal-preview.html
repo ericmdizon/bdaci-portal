@@ -446,6 +446,7 @@ kbd { font: 600 .8em var(--font-body); border: 1px solid var(--line); border-bot
 .viewer::backdrop { background: rgba(10, 25, 35, .65); }
 .viewer.max { width: 100vw; height: 100vh; height: 100dvh; border-radius: 0; }
 .viewer:fullscreen { width: 100vw; height: 100vh; border-radius: 0; }
+.viewer.fs { width: 100vw; height: 100vh; height: 100dvh; max-width: none; max-height: none; margin: 0; border-radius: 0; }
 .viewer [hidden] { display: none !important; }
 .vw-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px 10px 16px; border-bottom: 1px solid var(--line); }
 .vw-title { flex: 1; min-width: 0; display: grid; }
@@ -1200,22 +1201,20 @@ kbd { font: 600 .8em var(--font-body); border: 1px solid var(--line); border-bot
   function vbtn(k, icon, label) { return '<button type="button" class="btn" data-vw="' + k + '" title="' + label + '" aria-label="' + label + '">' + icon + '<span class="lbl">' + label + '</span></button>'; }
   function buildViewer() {
     vdlg = document.createElement("dialog"); vdlg.className = "viewer"; vdlg.setAttribute("aria-labelledby", "vw-t");
-    vdlg.innerHTML = '<div class="vw-head"><div class="vw-title"><b id="vw-t"></b><span id="vw-m"></span></div><div class="vw-tools">' + vbtn("download", VICON.dl, "Download") + vbtn("print", VICON.print, "Print") + vbtn("newtab", VICON.tab, "Open in new tab") + vbtn("expand", VICON.expand, "Expand") + vbtn("full", VICON.full, "Full screen") + '<button type="button" class="btn vw-x" data-vw="close" aria-label="Close" title="Close">✕</button></div></div><div class="vw-body"></div><div class="vw-sign" hidden></div>';
+    vdlg.innerHTML = '<div class="vw-head"><div class="vw-title"><b id="vw-t"></b><span id="vw-m"></span></div><div class="vw-tools">' + vbtn("newtab", VICON.tab, "Open in new tab") + vbtn("expand", VICON.expand, "Expand") + vbtn("full", VICON.full, "Full screen") + '<button type="button" class="btn vw-x" data-vw="close" aria-label="Close" title="Close">✕</button></div></div><div class="vw-body"></div><div class="vw-sign" hidden></div>';
     document.body.appendChild(vdlg);
-    if (!vdlg.requestFullscreen) vdlg.querySelector('[data-vw="full"]').hidden = true;
+    if (!document.documentElement.requestFullscreen || document.fullscreenEnabled === false) vdlg.querySelector('[data-vw="full"]').hidden = true;
     vdlg.addEventListener("cancel", function (e) { e.preventDefault(); if (document.fullscreenElement) return; vClose(); });
     vdlg.addEventListener("click", function (e) {
       if (e.target === vdlg) { vClose(); return; }
       var b = e.target.closest("[data-vw]"); if (!b) return;
       var k = b.getAttribute("data-vw");
       if (k === "close") vClose();
-      if (k === "download") toast("In the live portal this downloads the file.");
-      if (k === "print") toast("In the live portal this opens the print dialog for the document.");
       if (k === "newtab") toast("In the live portal this opens the document in a new browser tab.");
       if (k === "expand") { var on = vdlg.classList.toggle("max"); b.querySelector(".lbl").textContent = on ? "Exit expanded view" : "Expand"; }
-      if (k === "full") { if (document.fullscreenElement) document.exitFullscreen(); else vdlg.requestFullscreen().catch(function () { toast("Full screen isn't allowed in this preview window."); }); }
+      if (k === "full") { if (document.fullscreenElement) { document.exitFullscreen().catch(function () {}); return; } vdlg.classList.add("fs"); document.documentElement.requestFullscreen().catch(function () { vdlg.classList.remove("fs"); toast("Full screen isn't allowed in this preview window."); }); }
     });
-    document.addEventListener("fullscreenchange", function () { var b = vdlg.querySelector('[data-vw="full"] .lbl'); b.textContent = document.fullscreenElement === vdlg ? "Exit full screen" : "Full screen"; });
+    document.addEventListener("fullscreenchange", function () { var on = !!document.fullscreenElement; if (!on) vdlg.classList.remove("fs"); var b = vdlg.querySelector('[data-vw="full"] .lbl'); b.textContent = on ? "Exit full screen" : "Full screen"; });
   }
   function vPending() {
     if (!vcur || !canBoard()) return false;
@@ -1258,7 +1257,7 @@ kbd { font: 600 .8em var(--font-body); border: 1px solid var(--line); border-bot
       vReallyClose(); render(true);
     });
   }
-  function vReallyClose() { if (document.fullscreenElement) document.exitFullscreen().catch(function () {}); vdlg.close(); vdlg.classList.remove("max"); vcur = null; }
+  function vReallyClose() { if (document.fullscreenElement) document.exitFullscreen().catch(function () {}); vdlg.close(); vdlg.classList.remove("max", "fs"); vcur = null; }
   function vClose() {
     if (vPending() && !vwarned) {
       vwarned = true;

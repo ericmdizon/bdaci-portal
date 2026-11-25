@@ -538,6 +538,7 @@
 .bp.bp-viewer [hidden] { display: none !important; }
 .bp.bp-viewer.max { width: 100vw; height: 100vh; height: 100dvh; border-radius: 0; }
 .bp.bp-viewer:fullscreen { width: 100vw; height: 100vh; border-radius: 0; }
+.bp.bp-viewer.fs { width: 100vw; height: 100vh; height: 100dvh; max-width: none; max-height: none; margin: 0; border-radius: 0; }
 .bp .vw-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px 10px 16px; border-bottom: 1px solid var(--line); background: var(--surface); }
 .bp .vw-title { flex: 1; min-width: 0; display: grid; }
 .bp .vw-title b { font-family: var(--font-head); font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

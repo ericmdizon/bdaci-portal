@@ -145,7 +145,7 @@ Site administrators get a **Test data** screen for trying the portal before laun
 
 ## 8a. Document viewer and single-document sign-offs (new in 2.11)
 
-**The viewer.** Every document in the portal (sections, meetings, sign-off pages, the Home to-do list and `[bdaci_document]` links) now opens in a pop-up viewer instead of a new tab. The viewer has **Download**, **Print**, **Open in new tab**, **Expand** (fills the browser window) and **Full screen**. PDFs, pictures and text files show inside it. Word, Excel and PowerPoint files can't be shown in a browser, so the viewer offers a download instead. Holding Ctrl / ⌘ while clicking still opens the file in a new tab.
+**The viewer.** Every document in the portal (sections, meetings, sign-off pages, the Home to-do list and `[bdaci_document]` links) now opens in a pop-up viewer instead of a new tab. The viewer has **Open in new tab**, **Expand** (fills the browser window) and **Full screen**. There are no Download or Print buttons, and the browser's own PDF toolbar is hidden where the browser allows it (Chrome and Edge; Firefox and Safari may still show their own controls). PDFs, pictures and text files show inside it. Word, Excel and PowerPoint files can't be shown in a browser, so the viewer offers a download for those. Holding Ctrl / ⌘ while clicking still opens the file in a new tab.
 
 **Ask people to sign off on a document.**
 1. When uploading, or later from **Edit, rename or move** on the document, tick **Ask people to sign off after reading it**. Optionally change the statement people confirm (default: *I have read and understood "title".*).
