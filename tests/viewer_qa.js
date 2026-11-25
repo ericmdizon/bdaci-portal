@@ -47,6 +47,12 @@ const B = 'http://localhost:8089';
     check(`${vp.name}: sign-off bar starts folded so the document stays readable`, await sign.isVisible() && await sign.locator('.vw-open-sign').isVisible() && !(await sign.locator('input[name=ack]').isVisible()));
     await sign.locator('.vw-open-sign').click();
     check(`${vp.name}: Sign now opens the form with the statement`, /agree to the Code of Conduct/.test(await sign.innerText()) && await sign.locator('input[name=ack]').isVisible());
+    check(`${vp.name}: Type is the default with the full name filled in`, await sign.locator('[data-sig-mode=typed]').getAttribute('aria-pressed') === 'true' && await sign.locator('input[name=sig_name]').inputValue() === 'Bea Board' && (await sign.locator('.sig-preview').innerText()) === 'Bea Board');
+    check(`${vp.name}: signature uses the bundled script font`, await pg.evaluate(async () => { await document.fonts.ready; const el = document.querySelector('.vw-sign .sig-preview'); return /BDACI Signature/.test(getComputedStyle(el).fontFamily) && document.fonts.check('32px "BDACI Signature"', 'Bea'); }));
+    await sign.locator('input[name=sig_name]').fill('B. Board');
+    check(`${vp.name}: name can be changed, Use my name appears`, (await sign.locator('.sig-preview').innerText()) === 'B. Board' && await sign.locator('[data-sig-reset]').isVisible());
+    await sign.locator('[data-sig-reset]').click();
+    check(`${vp.name}: Use my name puts it back`, await sign.locator('input[name=sig_name]').inputValue() === 'Bea Board' && !(await sign.locator('[data-sig-reset]').isVisible()));
     // close without signing -> warning
     await dlg.locator('[data-vw=close]').click();
     check(`${vp.name}: closing asks to sign first`, await dlg.isVisible() && await dlg.locator('.vw-leave').isVisible());
@@ -59,6 +65,7 @@ const B = 'http://localhost:8089';
     await dlg.locator('.vw-leave .btn-primary').click();
     // try submit without signature
     await sign.locator('input[name=ack]').check();
+    await sign.locator('input[name=sig_name]').fill('');
     await sign.locator('button[type=submit]').click();
     check(`${vp.name}: empty signature stopped in the browser`, await sign.locator('.sig-err').isVisible() && await dlg.isVisible());
     if (vp.name === 'desktop') {

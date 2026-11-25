@@ -150,7 +150,7 @@ Site administrators get a **Test data** screen for trying the portal before laun
 **Ask people to sign off on a document.**
 1. When uploading, or later from **Edit, rename or move** on the document, tick **Ask people to sign off after reading it**. Optionally change the statement people confirm (default: *I have read and understood "title".*).
 2. Everyone who can open that document gets a **Sign-off** item on their Home to-do list.
-3. In the viewer, a folded bar at the bottom says **Sign off on this document** with a **Sign now** button, so the document stays easy to read. They tick the statement and sign by typing their name (shown in script) or drawing a signature.
+3. In the viewer, a folded bar at the bottom says **Sign off on this document** with a **Sign now** button, so the document stays easy to read. They tick the statement and sign. The **Type** tab is the default and already shows their first and last name as a signature in a script font; they can change the name (**Use my name** puts it back) or choose **Draw** to sign by hand.
 4. If they try to close the viewer (✕, Esc or clicking outside) without signing, it asks first: **Sign now** or **Close, sign later**.
 5. They get a confirmation email and a printable receipt with the signature. The document then shows a **Signed** pill.
 

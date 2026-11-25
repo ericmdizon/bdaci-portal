@@ -1,7 +1,7 @@
 === BDACI Portal Access ===
 Requires at least: 6.2
 Requires PHP: 7.4
-Stable tag: 2.11.1
+Stable tag: 2.11.2
 License: GPLv2 or later
 
 Restricts the BDACI Board & Committee Governance Portal to authorized users.
@@ -26,6 +26,10 @@ Shortcodes:
 See SETUP-GUIDE.md for installation and Microsoft/Google setup.
 
 == Changelog ==
+
+= 2.11.2 =
+* Signatures: the Type tab is the default and already shows the member's first and last name as a signature in a script font. They can change the name (Use my name puts it back) or switch to Draw.
+* Bundled script font Great Vibes (SIL Open Font License) so signatures look the same on every computer, including on receipts.
 
 = 2.11.1 =
 * Document viewer: removed the Download and Print buttons, and the browser's own PDF toolbar is hidden where supported. Word, Excel and PowerPoint files still offer a download, since browsers can't show them.
