@@ -530,3 +530,67 @@
 .bp .fn { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .82rem; overflow-wrap: anywhere; }
 .bp .doc-changes { margin: 6px 0 2px; color: var(--muted); }
 .bp .doc-changes ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 4px; }
+
+/* Document viewer and signatures (v2.11) */
+.bp.bp-viewer { min-height: 0; padding: 0; border: 0; border-radius: 14px; width: min(1100px, 96vw); height: min(900px, 92vh); max-width: none; max-height: none; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.35); background: var(--surface); color: var(--fg); }
+.bp.bp-viewer[open] { display: flex; flex-direction: column; }
+.bp-viewer::backdrop { background: rgba(10, 25, 35, .65); }
+.bp.bp-viewer [hidden] { display: none !important; }
+.bp.bp-viewer.max { width: 100vw; height: 100vh; height: 100dvh; border-radius: 0; }
+.bp.bp-viewer:fullscreen { width: 100vw; height: 100vh; border-radius: 0; }
+.bp .vw-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px 10px 16px; border-bottom: 1px solid var(--line); background: var(--surface); }
+.bp .vw-title { flex: 1; min-width: 0; display: grid; }
+.bp .vw-title b { font-family: var(--font-head); font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bp .vw-title span { font-size: .82rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bp .vw-tools { display: flex; gap: 4px; flex-wrap: nowrap; }
+.bp .vw-tools .btn { min-height: 38px; padding: 6px 10px; font-weight: 600; font-size: .88rem; gap: 6px; }
+.bp .vw-tools .btn svg { width: 18px; height: 18px; flex: none; }
+.bp .vw-tools .vw-x { font-size: 1.25rem; padding: 6px 12px; }
+.bp .vw-body { flex: 1; min-height: 0; position: relative; background: #525659; display: flex; }
+.bp .vw-body iframe { border: 0; width: 100%; height: 100%; background: #fff; }
+.bp .vw-body .vw-img { margin: 0 auto; max-width: 100%; height: auto; align-self: flex-start; background: #fff; }
+.bp .vw-body .vw-scroll { overflow: auto; width: 100%; display: flex; }
+.bp .vw-body pre { margin: 0; padding: 24px; background: #fff; width: 100%; white-space: pre-wrap; overflow-wrap: anywhere; font: 14px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; color: #1c2a36; }
+.bp .vw-msg { margin: auto; max-width: 460px; background: var(--surface); border-radius: 12px; padding: 24px; display: grid; gap: 12px; justify-items: start; text-align: left; }
+.bp .vw-msg .ext { font: 700 .8rem var(--font-head); letter-spacing: .06em; background: var(--surface-2); color: var(--muted); padding: 4px 8px; border-radius: 6px; }
+.bp .vw-sign { border-top: 1px solid var(--line); background: var(--surface); max-height: 55%; overflow: auto; }
+.bp .vw-sign[hidden] { display: none; }
+.bp .vw-sign-in { padding: 14px 16px; display: grid; gap: 10px; }
+.bp .vw-sign-h { display: flex; align-items: center; gap: 10px; justify-content: space-between; flex-wrap: wrap; }
+.bp .vw-sign-h h2 { font-size: 1.02rem; }
+.bp .vw-sign details > summary { cursor: pointer; font-weight: 700; color: var(--brand); }
+.bp .vw-sign.attn { box-shadow: inset 0 3px 0 var(--warn); }
+.bp .vw-sign.compact form .vw-sign-in > :not(.vw-sign-h) { display: none; }
+.bp .vw-sign.compact form + form .vw-sign-in, .bp .vw-sign.compact form .vw-sign-in { padding-top: 10px; padding-bottom: 10px; }
+.bp .vw-sign:not(.compact) .vw-open-sign { display: none; }
+.bp .vw-sign.compact { box-shadow: inset 0 3px 0 var(--warn); }
+.bp .vw-leave { background: var(--warn-soft); border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent); border-radius: var(--radius); padding: 12px 14px; display: grid; gap: 8px; }
+.bp .vw-leave b { color: var(--warn); }
+.bp .vw-pack-next { display: flex; flex-wrap: wrap; gap: 6px; }
+.bp .sig { border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px 12px; margin: 0; display: grid; gap: 8px; min-width: 0; }
+.bp .sig legend { font-weight: 700; padding: 0 4px; }
+.bp .sig-tabs { display: flex; gap: 6px; }
+.bp .sig-tabs .btn { min-height: 34px; padding: 4px 14px; }
+.bp .sig-tabs .btn[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+.bp .sig [data-sig-pane] { display: grid; gap: 6px; }
+.bp .sig [data-sig-pane][hidden] { display: none; }
+.bp .sig input[name="sig_name"] { min-height: 42px; border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 12px; font: inherit; max-width: 420px; width: 100%; }
+.bp .sig-pad { width: 100%; max-width: 600px; height: 150px; border: 1px dashed #8a9aa8; border-radius: var(--radius); background: #fff linear-gradient(transparent calc(100% - 34px), #c7d1da calc(100% - 34px), #c7d1da calc(100% - 33px), transparent calc(100% - 33px)); touch-action: none; cursor: crosshair; display: block; }
+.bp .sig-typed, .sig-typed { font: italic 2rem/1.2 "Segoe Script", "Brush Script MT", "Snell Roundhand", "Apple Chancery", "URW Chancery L", cursive; color: #13315c; }
+.bp .sig-preview { min-height: 2.6rem; border-bottom: 1px solid #c7d1da; max-width: 420px; padding: 2px 4px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.bp .sig-img { height: 54px; max-width: 220px; object-fit: contain; background: #fff; border-radius: 4px; }
+.bp .sig-sm.sig-img { height: 38px; max-width: 150px; }
+.bp .sig-sm.sig-typed { font-size: 1.3rem; white-space: nowrap; max-width: 150px; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
+.bp .sig-when { margin: 0; }
+.bp .sig-err { color: var(--danger); font-weight: 700; }
+.bp .signask { display: grid; gap: 6px; border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; background: var(--surface-2); }
+.bp .signask .field input { max-width: 640px; }
+.bp .tag.tag-sign { background: var(--warn-soft); color: var(--warn); text-decoration: none; }
+@media (max-width: 720px) {
+  .bp.bp-viewer { width: 100vw; height: 100vh; height: 100dvh; border-radius: 0; }
+  .bp .vw-tools .btn .lbl { display: none; }
+  .bp .vw-tools [data-vw="expand"] { display: none; }
+  .bp .vw-head { padding: 8px; gap: 6px; }
+  .bp .vw-sign { max-height: 65%; }
+}
+@media print { .bp.bp-viewer { display: none !important; } }

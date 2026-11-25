@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       BDACI Portal Access
  * Description:       Restricts the BDACI Board &amp; Committee Governance Portal to authorized users. Email + password sign-in with an emailed verification code, Microsoft 365 and Google sign-in, an admin-controlled allowlist, portal roles, and private document storage.
- * Version:           2.10.0
+ * Version:           2.11.0
  * Requires at least: 6.2
  * Requires PHP:      7.4
  * Author:            BDACI
@@ -14,8 +14,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'BDACI_PA_VERSION', '2.10.0' );
-define( 'BDACI_PA_DB_VERSION', '5' ); // 3: portal layout, meetings, requests, sign-offs. 4: QA Testing record. 5: QA screenshots.
+define( 'BDACI_PA_VERSION', '2.11.0' );
+define( 'BDACI_PA_DB_VERSION', '6' ); // 3: portal layout, meetings, requests, sign-offs. 4: QA Testing record. 5: QA screenshots. 6: signatures on sign-offs.
 define( 'BDACI_PA_FILE', __FILE__ );
 define( 'BDACI_PA_DIR', plugin_dir_path( __FILE__ ) );
 define( 'BDACI_PA_URL', plugin_dir_url( __FILE__ ) );

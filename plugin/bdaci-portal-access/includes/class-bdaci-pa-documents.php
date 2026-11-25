@@ -321,6 +321,6 @@ class BDACI_PA_Documents {
 			return '';
 		}
 		$text = $atts['text'] ? $atts['text'] : get_the_title( $id );
-		return '<a class="bdaci-document" href="' . esc_url( self::link( $id ) ) . '" target="_blank" rel="noopener">' . esc_html( $text ) . '</a>';
+		return '<a class="bdaci-document" href="' . esc_url( self::link( $id ) ) . '" target="_blank" rel="noopener"' . ( class_exists( 'BDACI_PA_Portal' ) ? BDACI_PA_Portal::view_attrs( $id ) : '' ) . '>' . esc_html( $text ) . '</a>';
 	}
 }

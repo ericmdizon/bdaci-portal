@@ -279,6 +279,7 @@ class BDACI_PA_Portal {
 		}
 		wp_enqueue_style( 'bdaci-pa-portal', BDACI_PA_URL . 'assets/portal.css', array(), BDACI_PA_VERSION );
 		wp_enqueue_script( 'bdaci-pa-portal', BDACI_PA_URL . 'assets/portal.js', array(), BDACI_PA_VERSION, true );
+		wp_add_inline_script( 'bdaci-pa-portal', 'window.bpView=' . wp_json_encode( self::viewer_data() ) . ';', 'before' );
 		$manage = self::manage_key();
 		if ( $manage && ( current_user_can( 'bdaci_manage_portal' ) || ( 'qa' === $manage && BDACI_PA_QA::can_view() ) ) ) {
 			BDACI_PA_Admin_Portal::enqueue( 'bdaci-portal' ); // Pick cards and other admin-screen styles.
@@ -433,7 +434,135 @@ class BDACI_PA_Portal {
 		if ( null === $meta ) {
 			$meta = self::doc_when( $doc );
 		}
-		return '<li>' . self::thumb( get_the_title( $doc ), $file, $kind ) . '<div class="grow"><b>' . self::e( get_the_title( $doc ) ) . '</b><span class="muted small">' . self::e( $meta ) . '</span></div><a class="btn btn-sm" href="' . esc_url( BDACI_PA_Documents::link( $doc->ID ) ) . '" target="_blank" rel="noopener">' . esc_html__( 'Open', 'bdaci-portal-access' ) . '</a></li>';
+		$sign = '';
+		$uid  = get_current_user_id();
+		if ( BDACI_PA_Signoffs::doc_needs( $doc->ID ) && BDACI_PA_Members::is_authorized( $uid ) ) {
+			$st   = BDACI_PA_Signoffs::doc_status( $doc->ID, $uid );
+			$sign = $st['signed'] ? '<span class="pill pill-ok" title="' . esc_attr( BDACI_PA_Signoffs::fmt( $st['signed'] ) ) . '">' . esc_html__( 'Signed', 'bdaci-portal-access' ) . '</span>' : '<span class="pill pill-warn">' . esc_html__( 'Sign-off needed', 'bdaci-portal-access' ) . '</span>';
+		}
+		return '<li>' . self::thumb( get_the_title( $doc ), $file, $kind ) . '<div class="grow"><b>' . self::e( get_the_title( $doc ) ) . '</b><span class="muted small">' . self::e( $meta ) . '</span></div>' . $sign . '<a class="btn btn-sm" href="' . esc_url( BDACI_PA_Documents::link( $doc->ID ) ) . '" target="_blank" rel="noopener"' . self::view_attrs( $doc->ID ) . '>' . esc_html__( 'Open', 'bdaci-portal-access' ) . '</a></li>';
+	}
+
+	/**
+	 * Data attributes that make a document link open in the pop-up viewer.
+	 * Without JavaScript the link still opens the file in a new tab.
+	 *
+	 * @param int $id Document.
+	 * @return string Attributes, starting with a space.
+	 */
+	public static function view_attrs( $id ) {
+		$id   = (int) $id;
+		$file = (string) get_post_meta( $id, '_wp_attached_file', true );
+		$ext  = strtolower( pathinfo( $file, PATHINFO_EXTENSION ) );
+		$type = 'pdf' === $ext ? 'pdf' : ( in_array( $ext, array( 'jpg', 'jpeg', 'png', 'gif', 'webp' ), true ) ? 'img' : ( in_array( $ext, array( 'txt', 'csv' ), true ) ? 'text' : 'file' ) );
+		$uid  = get_current_user_id();
+		$a    = array(
+			'data-view'  => $id,
+			'data-title' => get_the_title( $id ),
+			'data-type'  => $type,
+			'data-ext'   => strtoupper( $ext ),
+			'data-meta'  => self::doc_when( $id ),
+			'data-dl'    => BDACI_PA_Documents::link( $id, true ),
+		);
+		if ( BDACI_PA_Signoffs::doc_needs( $id ) && BDACI_PA_Members::is_authorized( $uid ) && BDACI_PA_Sections::can_open( $id, $uid ) ) {
+			$st                  = BDACI_PA_Signoffs::doc_status( $id, $uid );
+			$a['data-statement'] = BDACI_PA_Signoffs::doc_statement( $id );
+			if ( $st['signed'] ) {
+				$a['data-signed'] = BDACI_PA_Signoffs::fmt( $st['signed'] );
+				$a['data-receipt'] = wp_nonce_url( admin_url( 'admin-post.php?action=bdaci_pa_signoff_receipt&pack=doc&doc=' . $id ), 'bdaci_pa_receipt_doc' );
+			} else {
+				$a['data-sign'] = '1';
+			}
+		}
+		$packs = array();
+		foreach ( array_keys( BDACI_PA_Signoffs::packs() ) as $k ) {
+			if ( in_array( $k, BDACI_PA_Sections::doc_sections( $id ), true ) && BDACI_PA_Signoffs::needs_action( $k, $uid ) ) {
+				$packs[] = $k;
+			}
+		}
+		if ( $packs ) {
+			$a['data-packs'] = implode( ',', $packs );
+		}
+		$h = '';
+		foreach ( $a as $k => $v ) {
+			$h .= ' ' . $k . '="' . esc_attr( (string) $v ) . '"';
+		}
+		return $h;
+	}
+
+	/**
+	 * What the document viewer needs: where to post sign-offs, the open sign-off packs and its words.
+	 *
+	 * @return array
+	 */
+	public static function viewer_data() {
+		$uid   = get_current_user_id();
+		$packs = array();
+		foreach ( BDACI_PA_Signoffs::packs() as $k => $p ) {
+			if ( ! BDACI_PA_Signoffs::needs_action( $k, $uid ) ) {
+				continue;
+			}
+			$st   = BDACI_PA_Signoffs::status( $k, $uid );
+			$docs = array();
+			foreach ( BDACI_PA_Signoffs::docs( $k, $uid ) as $d ) {
+				$docs[] = array(
+					'id'    => $d->ID,
+					'title' => get_the_title( $d ),
+				);
+			}
+			$packs[ $k ] = array(
+				'title'     => $p['title'],
+				'statement' => $p['statement'],
+				'docs'      => $docs,
+				'opened'    => array_map( 'intval', array_keys( $st['opened'] ) ),
+			);
+		}
+		$u = wp_get_current_user();
+		return array(
+			'post'   => admin_url( 'admin-post.php' ),
+			'nonce'  => array(
+				'docsign' => wp_create_nonce( 'bdaci_pa_portal_docsign' ),
+				'signoff' => wp_create_nonce( 'bdaci_pa_portal_signoff' ),
+			),
+			'me'     => $u->display_name,
+			'now'    => date_i18n( 'M j, Y g:i A' ),
+			'packs'  => $packs,
+			'sig'    => $uid ? BDACI_PA_Signoffs::sig_fields( 'bpv-sig' ) : '',
+			'i18n'   => array(
+				'close'       => __( 'Close', 'bdaci-portal-access' ),
+				'download'    => __( 'Download', 'bdaci-portal-access' ),
+				'print'       => __( 'Print', 'bdaci-portal-access' ),
+				'newtab'      => __( 'Open in new tab', 'bdaci-portal-access' ),
+				'expand'      => __( 'Expand', 'bdaci-portal-access' ),
+				'shrink'      => __( 'Exit expanded view', 'bdaci-portal-access' ),
+				'full'        => __( 'Full screen', 'bdaci-portal-access' ),
+				'exitfull'    => __( 'Exit full screen', 'bdaci-portal-access' ),
+				'loading'     => __( 'Loading…', 'bdaci-portal-access' ),
+				'noPreview'   => __( 'This type of file can\'t be shown in the browser. Download it to read it in Word, Excel or PowerPoint.', 'bdaci-portal-access' ),
+				'tooBig'      => __( 'This file is too large to show here. Download it to read it.', 'bdaci-portal-access' ),
+				'loadFail'    => __( 'The document could not be loaded. Try Open in new tab or Download.', 'bdaci-portal-access' ),
+				'signTitle'   => __( 'Sign off on this document', 'bdaci-portal-access' ),
+				'signHint'    => __( 'When you have read it, confirm and sign below.', 'bdaci-portal-access' ),
+				'signFile'    => __( 'Download and read the file, then come back here to sign.', 'bdaci-portal-access' ),
+				'signBtn'     => __( 'Sign off', 'bdaci-portal-access' ),
+				'signed'      => __( 'Signed off', 'bdaci-portal-access' ),
+				/* translators: %s: date and time */
+				'signedOn'    => __( 'You signed off on %s.', 'bdaci-portal-access' ),
+				'receipt'     => __( 'Print receipt', 'bdaci-portal-access' ),
+				/* translators: %s: sign-off title */
+				'packTitle'   => __( '%s sign-off', 'bdaci-portal-access' ),
+				/* translators: 1: opened, 2: total */
+				'packProg'    => __( '%1$d of %2$d documents opened. Open each one, then sign off here.', 'bdaci-portal-access' ),
+				'packReady'   => __( 'You have opened every document. Confirm and sign below.', 'bdaci-portal-access' ),
+				'next'        => __( 'Next:', 'bdaci-portal-access' ),
+				'leaveTitle'  => __( 'You haven\'t signed off yet', 'bdaci-portal-access' ),
+				'leaveText'   => __( 'This document asks for your sign-off. Sign now, or close and come back to it later from your to-do list.', 'bdaci-portal-access' ),
+				'signNow'     => __( 'Sign now', 'bdaci-portal-access' ),
+				'later'       => __( 'Close, sign later', 'bdaci-portal-access' ),
+				'needSig'     => __( 'Type your name or draw your signature.', 'bdaci-portal-access' ),
+				'dialog'      => __( 'Document viewer', 'bdaci-portal-access' ),
+			),
+		);
 	}
 
 	/**
@@ -789,6 +918,9 @@ class BDACI_PA_Portal {
 				break;
 			case 'signoff':
 				BDACI_PA_Signoffs::handle_sign( $uid );
+				break;
+			case 'docsign':
+				BDACI_PA_Signoffs::handle_doc_sign( $uid );
 				break;
 			case 'request':
 			case 'request_cancel':

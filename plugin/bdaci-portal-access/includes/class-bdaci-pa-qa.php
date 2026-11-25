@@ -222,6 +222,7 @@ class BDACI_PA_QA {
 				'DOC-06' => array( 'Document shows in the right place', 'board', array( 'Find the files uploaded in DOC-02 and DOC-05 on their pages.' ), 'Each file appears in every section that was ticked, with the right title and date.' ),
 				'DOC-07' => array( 'Edit and delete a document', 'admin', array( "Change a document's title, sections and who can open it.", 'Delete a test document.' ), "Changes show on the member pages. The deleted file's link no longer opens." ),
 				'DOC-08' => array( 'Upload history and CSV', 'admin', array( 'Scroll to Upload history, filter by section, press Export CSV.' ), 'The history lists who uploaded what and when. The CSV opens in Excel with the same rows.' ),
+				'DOC-10' => array( 'Ask people to sign off on a document', 'admin', array( 'Upload a file and tick "Ask people to sign off after reading it". Add a statement.', 'Later, open Edit, rename or move on it and untick it.' ), 'The document list shows "Sign-off: 0 of N signed" and it appears on members\' to-do lists. Unticking stops asking but keeps the signatures already given.' ),
 				'DOC-09' => array( 'Add a new section', 'admin', array( 'Press + New section, name it, choose Board or Committees and who can see it, create it.' ), "The section appears in the side menu in the chosen group, with its own page, and as a card in the 'Sections you added' group." ),
 			) ),
 			'signoff' => array( __( 'Sign-offs', 'bdaci-portal-access' ), __( 'New Director Orientation and Quality Assurance.', 'bdaci-portal-access' ), array(
@@ -230,6 +231,11 @@ class BDACI_PA_QA {
 				'SO-03' => array( 'Audit trail', 'admin', array( 'Open Portal admin › Sign-off Audit Trail.' ), 'The chart and table show who signed, when, and who is still waiting.' ),
 				'SO-04' => array( 'Send reminders', 'admin', array( 'Press Remind people who have not signed.' ), 'Waiting people get an email, and the trail records that a reminder was sent.' ),
 				'SO-05' => array( 'Quality Assurance sign-off', 'board', array( 'Repeat SO-01 and SO-02 on Quality Assurance.' ), 'Works the same way and is recorded separately in the audit trail.' ),
+				'SO-06' => array( 'Document viewer', 'board', array( 'Press Open on any document.', 'Try Expand, Full screen, Print, Download and Open in new tab, then close it with the X or Esc.' ), 'The document opens in a pop-up over the page. Each button works. Word and Excel files show a Download button instead of a preview.' ),
+				'SO-07' => array( 'Sign off on a document in the viewer', 'board', array( 'Open a document that asks for a sign-off (it is on your Home to-do list).', 'Press Sign now, tick the statement, type your name and press Sign off.' ), 'A message confirms the sign-off, a confirmation email arrives, and the to-do item disappears. Opening the document again shows "Signed off" with a Print receipt link.' ),
+				'SO-08' => array( 'Draw a signature', 'board', array( 'On another document that asks for a sign-off, choose Draw and sign with the mouse or a finger.', 'Use Clear once, sign again and press Sign off.' ), 'The drawn signature is saved and shows in the Sign-off Audit Trail and on the receipt.' ),
+				'SO-09' => array( 'Closing without signing', 'board', array( 'Open a document that asks for a sign-off and press the X without signing.' ), 'You are asked "You haven\'t signed off yet" with Sign now or Close, sign later. Close, sign later closes it and the item stays on your to-do list.' ),
+				'SO-10' => array( 'Document sign-offs in the audit trail', 'admin', array( 'Open Portal admin › Sign-off Audit Trail › Document sign-offs.', 'Press Email a reminder, then Export CSV.' ), 'Each document lists who signed with date, time and signature, and who has not. Only people who have not signed get the reminder. The CSV has a Signature column.' ),
 			) ),
 			'admin'   => array( __( 'Running the portal (admins)', 'bdaci-portal-access' ), '', array(
 				'ADM-01' => array( 'Add one person', 'admin', array( 'Open Portal admin › Authorized Users.', 'Add an email, name and role, with the invitation ticked.' ), 'The person appears in the list and receives an email to set a password.' ),
@@ -306,7 +312,7 @@ class BDACI_PA_QA {
 			$out[ $id ] = $meet;
 		}
 		$out['MEET-03'] = $out['HOME-04'];
-		foreach ( array( 'DOC-01', 'DOC-02', 'DOC-03', 'DOC-04', 'DOC-05', 'DOC-07', 'DOC-08', 'DOC-09', 'DEV-03' ) as $id ) {
+		foreach ( array( 'DOC-01', 'DOC-02', 'DOC-03', 'DOC-04', 'DOC-05', 'DOC-07', 'DOC-08', 'DOC-09', 'DOC-10', 'DEV-03' ) as $id ) {
 			$out[ $id ] = $docs;
 		}
 		$out['DOC-06']  = $gov;
@@ -315,6 +321,11 @@ class BDACI_PA_QA {
 		$out['SO-03']   = $trail;
 		$out['SO-04']   = $trail;
 		$out['SO-05']   = array( array( $portal, $board, $sc['qa'][0] ), $p( 'qa' ) );
+		$out['SO-06']   = $home;
+		$out['SO-07']   = $home;
+		$out['SO-08']   = $home;
+		$out['SO-09']   = $home;
+		$out['SO-10']   = array( array( $portal, $adm, __( 'Sign-off Audit Trail', 'bdaci-portal-access' ), __( 'Document sign-offs', 'bdaci-portal-access' ) ), $a( 'signoffs', array( 'pack' => 'doc' ) ) );
 		$out['ADM-01']  = $users;
 		$out['ADM-02']  = $users;
 		$out['ADM-03']  = $users;
