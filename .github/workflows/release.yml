@@ -1,0 +1,65 @@
+# Publishes a GitHub release when a new plugin version reaches main.
+# The plugin's built-in updater (Settings › Updates) reads these releases: each release
+# tagged vX.Y.Z with a bdaci-portal-access.zip file shows up as an update on the Plugins screen.
+name: Release plugin
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'plugin/bdaci-portal-access/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the plugin version
+        id: ver
+        run: |
+          FILE=plugin/bdaci-portal-access/bdaci-portal-access.php
+          VER=$(sed -nE 's/^[[:space:]]*\*[[:space:]]*Version:[[:space:]]*([0-9.]+).*/\1/p' "$FILE" | head -1)
+          CONST=$(sed -nE "s/.*define\( 'BDACI_PA_VERSION', '([0-9.]+)' \).*/\1/p" "$FILE" | head -1)
+          if [ -z "$VER" ] || [ "$VER" != "$CONST" ]; then
+            echo "::error::Version header ($VER) and BDACI_PA_VERSION ($CONST) must match"; exit 1
+          fi
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VER" >/dev/null; then
+            echo "exists=yes" >> "$GITHUB_OUTPUT"; echo "v$VER is already released"
+          else
+            echo "exists=no" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check PHP syntax
+        if: steps.ver.outputs.exists == 'no'
+        run: find plugin -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null
+
+      - name: Build the zip
+        if: steps.ver.outputs.exists == 'no'
+        run: bash tools/build.sh
+
+      - name: Release notes from the readme changelog
+        if: steps.ver.outputs.exists == 'no'
+        run: |
+          VER='${{ steps.ver.outputs.version }}'
+          awk -v v="= $VER =" '$0==v{on=1;next} /^= [0-9]/{if(on)exit} on' plugin/bdaci-portal-access/readme.txt > notes.md
+          [ -s notes.md ] || echo "BDACI Portal Access $VER" > notes.md
+          cat notes.md
+
+      - name: Publish the release
+        if: steps.ver.outputs.exists == 'no'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VER='${{ steps.ver.outputs.version }}'
+          gh release create "v$VER" dist/bdaci-portal-access.zip \
+            --title "BDACI Portal Access $VER" --notes-file notes.md --target "$GITHUB_SHA"

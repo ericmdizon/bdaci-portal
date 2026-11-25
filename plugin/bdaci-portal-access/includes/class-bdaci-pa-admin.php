@@ -908,6 +908,17 @@ class BDACI_PA_Admin {
 					?>
 				</table>
 
+				<h2 id="bdaci-updates"><?php esc_html_e( 'Updates', 'bdaci-portal-access' ); ?></h2>
+				<?php echo BDACI_PA_Updater::status_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in status_html(). ?>
+				<p class="description"><?php esc_html_e( 'New versions are published on GitHub. They show on the Plugins screen like any other plugin update, with "Check for updates" and "View details".', 'bdaci-portal-access' ); ?></p>
+				<table class="form-table" role="presentation">
+					<?php
+					$field( 'update_auto', __( 'Automatic updates', 'bdaci-portal-access' ), 'checkbox', __( 'Install new versions automatically (WordPress checks about twice a day)', 'bdaci-portal-access' ) );
+					$field( 'update_repo', __( 'GitHub repository', 'bdaci-portal-access' ), 'text', defined( 'BDACI_PA_UPDATE_REPO' ) ? __( 'Currently set in wp-config.php (BDACI_PA_UPDATE_REPO), which takes priority.', 'bdaci-portal-access' ) : __( 'owner/name, e.g. ericmdizon/bdaci-portal. Leave blank to turn update checks off.', 'bdaci-portal-access' ) );
+					$field( 'update_token', __( 'GitHub access key', 'bdaci-portal-access' ), 'secret', defined( 'BDACI_PA_UPDATE_TOKEN' ) ? __( 'Currently set in wp-config.php, which takes priority.', 'bdaci-portal-access' ) : __( 'Needed because the repository is private. Use a fine-grained personal access token limited to this repository with Contents: Read-only. Or define BDACI_PA_UPDATE_TOKEN in wp-config.php.', 'bdaci-portal-access' ) );
+					?>
+				</table>
+
 				<h2><?php esc_html_e( 'Uninstall', 'bdaci-portal-access' ); ?></h2>
 				<table class="form-table" role="presentation">
 					<?php $field( 'remove_data_on_uninstall', __( 'Data', 'bdaci-portal-access' ), 'checkbox', __( 'Delete the authorized-user list, log, settings and portal roles when the plugin is deleted (private files are kept)', 'bdaci-portal-access' ) ); ?>

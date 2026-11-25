@@ -1,7 +1,7 @@
 === BDACI Portal Access ===
 Requires at least: 6.2
 Requires PHP: 7.4
-Stable tag: 2.9.1
+Stable tag: 2.10.0
 License: GPLv2 or later
 
 Restricts the BDACI Board & Committee Governance Portal to authorized users.
@@ -26,6 +26,13 @@ Shortcodes:
 See SETUP-GUIDE.md for installation and Microsoft/Google setup.
 
 == Changelog ==
+
+= 2.10.0 =
+* Updates from GitHub: new versions show on the Plugins screen like any other plugin update, with "update now" and "View details" (release notes and changelog).
+* "Check for updates" link on the Plugins screen and a "Check for updates now" button in Settings › Updates, with the installed version, the newest version and the last check time.
+* Automatic updates (on by default, can be turned off in Settings › Updates).
+* Settings › Updates: GitHub repository and a read-only GitHub access key for the private repository (or BDACI_PA_UPDATE_REPO / BDACI_PA_UPDATE_TOKEN in wp-config.php). The key is never shown back.
+* Plugin updates are recorded in the activity log.
 
 = 2.9.1 =
 * QA Testing CSV: notes that start with =, +, - or @ are exported as text so a spreadsheet can't run them as formulas.

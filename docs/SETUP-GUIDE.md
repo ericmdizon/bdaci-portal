@@ -165,6 +165,25 @@ Before go-live you can remove testers' access on the same tab. Deleting the plug
 - **Times everywhere.** Each document shows its date and when it was uploaded ("Uploaded 11:21 AM", or the full date and time if it was uploaded on another day). The Sign-off Audit Trail shows the date and time each person was sent, reminded and signed.
 - **Rename or move a document.** In the document list, open **Edit, rename or move**. Change **File name** to rename the file people download (the .pdf/.docx type stays the same, and existing links keep working). To move it, untick the section it is in now and tick the new one. Each rename and move is listed on the document with who did it and when, and recorded in the Activity Log.
 
+## 9d. Updates (Plugins screen and BDACI Portal → Settings → Updates)
+
+New versions of the plugin are published as releases in the private GitHub repository. The plugin checks for them like any WordPress.org plugin:
+
+- **Plugins screen.** When a newer version exists, the BDACI Portal Access row says "There is a new version available" with **View details** (release notes and changelog) and **update now**. The row also has a **Check for updates** link that asks GitHub straight away.
+- **Automatic updates.** On by default: WordPress installs new versions on its own (it checks about twice a day). Turn it off under Settings → Updates → Automatic updates. The Plugins screen shows "Auto-updates enabled" while it is on.
+- **Settings → Updates** shows the installed version, the newest version, when it last checked, any problem (for example a wrong access key), and a **Check for updates now** button. Each update is recorded in the Activity Log.
+
+**One-time setup on each site.** The repository is private, so each site needs a read-only GitHub access key:
+
+1. On GitHub, open your profile picture → **Settings** → **Developer settings** → **Personal access tokens** → **Fine-grained tokens** → **Generate new token**.
+2. Name it "BDACI portal updates", pick an expiry (for example one year, and put a reminder in the calendar to renew it), and under **Repository access** choose **Only select repositories** → `bdaci-portal`.
+3. Under **Repository permissions**, set **Contents** to **Read-only**. Leave everything else as "No access". Generate the token and copy it.
+4. In WordPress, go to **BDACI Portal → Settings → Updates**, paste it into **GitHub access key**, and save. Leave **GitHub repository** as `ericmdizon/bdaci-portal`. Click **Check for updates now** to confirm it works.
+
+Or put the key in `wp-config.php` instead (see section 12).
+
+**Publishing a new version** (for whoever maintains the code): raise the version number in the plugin header and `BDACI_PA_VERSION`, add a changelog entry to `readme.txt`, and merge to `main`. A GitHub Action builds `bdaci-portal-access.zip` and publishes release `vX.Y.Z` with the changelog as notes; sites pick it up at their next check. Sites still on 2.9.1 or older don't have the updater yet, so install 2.10.0 on them by uploading the zip once.
+
 ## 10. Microsoft 365 sign-in (Azure / Microsoft Entra)
 
 You need someone who can register apps in BDACI's Microsoft 365 tenant (a Global Admin or Application Developer).
@@ -205,6 +224,7 @@ Instead of pasting the secrets into Settings, you (or your host) can add these l
 ```php
 define( 'BDACI_PA_MS_CLIENT_SECRET', 'paste-value-here' );
 define( 'BDACI_PA_GOOGLE_CLIENT_SECRET', 'paste-value-here' );
+define( 'BDACI_PA_UPDATE_TOKEN', 'paste-github-access-key-here' );
 ```
 
 ## 13. Test before announcing

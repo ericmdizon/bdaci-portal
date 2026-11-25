@@ -1,6 +1,6 @@
 # Tests
 
-`e2e.py` is the end-to-end suite (274 checks). It runs against the local test site in the BDACI dev kit
+`e2e.py` is the end-to-end suite (306 checks on a fresh kit; 300 when the plugin folder is a symlink, which skips the real "update now" install). It runs against the local test site in the BDACI dev kit
 (`bdaci-portal-dev-kit.zip`: WordPress on SQLite with seeded members, pages and documents). The site itself is not
 kept in this repository because it is a full WordPress install.
 
@@ -12,6 +12,9 @@ kept in this repository because it is a full WordPress install.
 `router.php`, `wpcli.php` and `test-harness.php` (a must-use plugin that captures mail to `mail.log` and fakes the
 Microsoft/Google token endpoints) are copies of the kit's harness files, kept here for reference. Test only: never put
 `test-harness.php` on a real site.
+
+`test-github.php` is another must-use plugin for the kit (`wp/wp-content/mu-plugins/`). It fakes the GitHub releases API
+so the updater can be tested offline (option `test_fake_gh`), and keeps WordPress.org offline. Test only as well.
 
 ## Break tests and browser checks
 

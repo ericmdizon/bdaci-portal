@@ -55,13 +55,14 @@ Everything they do there is the same as doing it under **BDACI Portal** in WordP
 | Access requests | When on, someone who signs in with Microsoft/Google but isn't on the list becomes a "Pending" request that you can approve. |
 | Send requests to | Who is emailed about new requests. |
 | Portal name, welcome text, logo URL, brand color, help email | Branding for the sign-in page. Upload the logo in Media and paste its URL. |
+| Sign-in picture, headline, tagline | The left side of the sign-in page. It shows a built-in illustration of a board meeting by default. To use a photo instead, upload it in Media and paste its URL; it is tinted blue-green so the text stays readable. **Preview the sign-in page** shows it while you are signed in. |
 | Email + password sign-in | Keep "require a 6-digit code" **on**. |
 | Minimum password length | 12 by default. Passwords also need 3 of: lowercase, uppercase, numbers, symbols. |
 | Portal layout | Leave **on**. Turning it off shows portal pages in the normal site theme instead (no dashboard, calendar or side menu). |
 | Portal fonts | Loads Ubuntu and Open Sans from Google Fonts. Turn off if the site already loads them or you prefer not to use Google Fonts. |
 | Theme styles | Leave **off**. The portal hides the theme's and Elementor's stylesheets on its own pages so they don't clash. Turn on only if content you add to a portal page in the editor looks unstyled. |
 
-The sign-in page is **https://bdaci.com/portal-login/**. Add it to your site menu as "Board Portal Login", or use the `[bdaci_login_link]` shortcode. The portal's top bar has its own **Sign out** link.
+The sign-in page is **https://bdaci.com/portal-login/**. If you are already signed in, that address takes you straight into the portal; use **/portal-login/?preview=1** (or the Preview button in Settings) to see the page, or open it in a private window. Add it to your site menu as "Board Portal Login", or use the `[bdaci_login_link]` shortcode. The portal's top bar has its own **Sign out** link.
 
 The **Help contact email** receives messages from the portal's Support page (it falls back to "Send requests to").
 
@@ -94,7 +95,7 @@ Files in the normal Media Library are **public**: anyone with the link can open 
 
 1. Add the files by **dragging** them onto the dotted box, **pasting** (Ctrl+V / ⌘+V, screenshots too) or **clicking** the box. Up to 20 at a time.
 2. Give it a title (used for a single file; with several, each is titled from its file name) and a **document date** (for example the meeting date; it sorts the minutes archive by year).
-3. Pick the **Section(s)** it belongs to: Agenda, Meeting package, Minutes, Bylaws, Board Policies, Strategic Plan, Financial Reports, New Director Orientation, Quality Assurance, Education Committee, Finance Committee, or a section you added. The file appears in each one.
+3. Pick the **Section(s)** it belongs to: Agenda, Meeting package, Minutes, Bylaws, Board Policies, Strategic Plan, Financial Reports, New Director Orientation, Quality Assurance, Education Committee, Finance Committee, or a section you added. The file appears in each one. The sections are grouped by where they show (Meeting documents, Governance & Core Documents, Board sign-offs, Committee pages, Sections you added). Each group has a small map of the portal with its menu and page highlighted, and each card says "Shows on: …". As you tick sections and who can open it, the **Where this file will appear** box above the Upload button lists every menu and page the file will show on. Point at or click a section card to highlight exactly where it shows on its group's map, and click any map to zoom it.
 4. Pick **Who can open it**: All portal users, Board Members, Education Committee, Finance Committee (+ Board). Tick more than one to combine groups. Portal Admins can always open everything. Click **Upload**.
 
 The **Documents** list below lets you edit a file's title, date, sections and who can open it, or delete it. **Upload history** shows what was posted when and by whom, with a CSV export. Each document also has a shortcode, for example `[bdaci_document id="123"]`, if you want to link it from a page's text.
@@ -142,6 +143,47 @@ Site administrators get a **Test data** screen for trying the portal before laun
 * **Remove all test data** deletes only what that button added. Anything you created yourself stays.
 * **Get ready for launch** (type RESET to confirm) clears all RSVPs, sign-off history, access requests and the activity log, and by default removes the test data first. People, meetings, documents, pages and settings you created are kept. Use it once, just before you invite the real board.
 
+## 9b. QA Testing (BDACI Portal → QA Testing)
+
+A built-in checklist for your team to test the portal before launch. Open it from Portal admin › QA Testing, or WordPress admin › BDACI Portal › QA Testing.
+
+- **Test scenarios tab.** Scenarios are grouped by topic (Sign-in, Roles and access, Home and calendar, Meetings, Documents, Sign-offs, Admin, Profile, Devices). Each group tab shows how many are done and how many failed. Filter chips show All, Not tested, Failed, or Marked by me. Each scenario has steps and the expected result; mark it Passed, Failed or Skipped and add a note. The card shows who marked it and when, plus the full history for the round.
+- **Where to find it.** Every scenario shows a breadcrumb such as *Portal › Portal admin › Meetings* and an **Open** button that opens that page in a new tab.
+- **Notes and screenshots.** Type a note, then add screenshots with **Add screenshots**, by pasting into the note box (Ctrl+V / ⌘+V), or by dropping files on the card. Pressing Passed, Failed or Skipped saves them with the result; **Save note only** adds them without changing the result. PNG, JPG, GIF or WebP, up to 8 MB each and 6 at a time. Screenshots are stored in the protected documents folder and open only for people who can see QA Testing.
+- **QA record tab.** Every check ever made in the round, newest first, with tester, time, result, note and screenshots. Filter by group, tester or result.
+- **Who can see this page.** Portal Admins always can. Tick any other active member to let them test; they get a "QA Testing" link in their portal menu. Changes are written to the activity log.
+- **Rounds.** Start a new round (for example "Round 2, after fixes") to test everything again from scratch. Earlier rounds stay viewable from the round picker. Only Portal Admins can start a round.
+- **Export CSV.** Downloads the latest result per scenario (with where to find it) and every check, with links to its screenshots, for sharing or sign-off.
+- **Breadcrumbs.** Every portal page and admin screen now shows where it sits at the top, for example *Home › Board › Governance & Core Documents* or *Home › Portal admin › QA Testing*.
+
+Before go-live you can remove testers' access on the same tab. Deleting the plugin removes the QA data.
+
+## 9c. Sections & Uploads tips
+
+- **Search sections.** Type in the search box above the section cards (for example "minutes" or "finance") to show only matching sections.
+- **Document date** starts as today. Change it to the meeting date when uploading agendas or minutes. The upload time is recorded automatically.
+- **Times everywhere.** Each document shows its date and when it was uploaded ("Uploaded 11:21 AM", or the full date and time if it was uploaded on another day). The Sign-off Audit Trail shows the date and time each person was sent, reminded and signed.
+- **Rename or move a document.** In the document list, open **Edit, rename or move**. Change **File name** to rename the file people download (the .pdf/.docx type stays the same, and existing links keep working). To move it, untick the section it is in now and tick the new one. Each rename and move is listed on the document with who did it and when, and recorded in the Activity Log.
+
+## 9d. Updates (Plugins screen and BDACI Portal → Settings → Updates)
+
+New versions of the plugin are published as releases in the private GitHub repository. The plugin checks for them like any WordPress.org plugin:
+
+- **Plugins screen.** When a newer version exists, the BDACI Portal Access row says "There is a new version available" with **View details** (release notes and changelog) and **update now**. The row also has a **Check for updates** link that asks GitHub straight away.
+- **Automatic updates.** On by default: WordPress installs new versions on its own (it checks about twice a day). Turn it off under Settings → Updates → Automatic updates. The Plugins screen shows "Auto-updates enabled" while it is on.
+- **Settings → Updates** shows the installed version, the newest version, when it last checked, any problem (for example a wrong access key), and a **Check for updates now** button. Each update is recorded in the Activity Log.
+
+**One-time setup on each site.** The repository is private, so each site needs a read-only GitHub access key:
+
+1. On GitHub, open your profile picture → **Settings** → **Developer settings** → **Personal access tokens** → **Fine-grained tokens** → **Generate new token**.
+2. Name it "BDACI portal updates", pick an expiry (for example one year, and put a reminder in the calendar to renew it), and under **Repository access** choose **Only select repositories** → `bdaci-portal`.
+3. Under **Repository permissions**, set **Contents** to **Read-only**. Leave everything else as "No access". Generate the token and copy it.
+4. In WordPress, go to **BDACI Portal → Settings → Updates**, paste it into **GitHub access key**, and save. Leave **GitHub repository** as `ericmdizon/bdaci-portal`. Click **Check for updates now** to confirm it works.
+
+Or put the key in `wp-config.php` instead (see section 12).
+
+**Publishing a new version** (for whoever maintains the code): raise the version number in the plugin header and `BDACI_PA_VERSION`, add a changelog entry to `readme.txt`, and merge to `main`. A GitHub Action builds `bdaci-portal-access.zip` and publishes release `vX.Y.Z` with the changelog as notes; sites pick it up at their next check. Sites still on 2.9.1 or older don't have the updater yet, so install 2.10.0 on them by uploading the zip once.
+
 ## 10. Microsoft 365 sign-in (Azure / Microsoft Entra)
 
 You need someone who can register apps in BDACI's Microsoft 365 tenant (a Global Admin or Application Developer).
@@ -182,6 +224,7 @@ Instead of pasting the secrets into Settings, you (or your host) can add these l
 ```php
 define( 'BDACI_PA_MS_CLIENT_SECRET', 'paste-value-here' );
 define( 'BDACI_PA_GOOGLE_CLIENT_SECRET', 'paste-value-here' );
+define( 'BDACI_PA_UPDATE_TOKEN', 'paste-github-access-key-here' );
 ```
 
 ## 13. Test before announcing

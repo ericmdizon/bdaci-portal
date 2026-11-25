@@ -589,4 +589,89 @@ big=tiny_png()+b'\x00'*(9*1024*1024)
 r=s4.post(AP+'?action=bdaci_pa_qa_mark',headers={'Referer':P+'/?manage=qa&group=sign'},data={'action':'bdaci_pa_qa_mark','_wpnonce':n,'_bdaci_front':'1','scenario':'SIGN-07','round':rid,'status':'note','group':'sign'},files=[('shots[]',('huge.png',big,'image/png'))])
 check('too-large upload explains itself instead of a blank page', 'too large to send together' in r.text, r.url)
 
+# ======================= v2.10 updates from GitHub =======================
+BN='bdaci-portal-access/bdaci-portal-access.php'
+def ghlog(): 
+    p=WP+'/wp-content/gh-req.log'; return open(p).read() if os.path.exists(p) else ''
+def reset_upd(fake):
+    php('delete_site_transient("bdaci_pa_update_info"); delete_site_transient("update_plugins"); delete_site_option("bdaci_pa_update_error");' + (f'update_option("test_fake_gh", {fake});' if fake else 'delete_option("test_fake_gh");'))
+    if os.path.exists(WP+'/wp-content/gh-req.log'): os.remove(WP+'/wp-content/gh-req.log')
+cur=php('echo BDACI_PA_VERSION;').strip()
+check('default update source is the BDACI repo, auto-update on', php('echo BDACI_PA_Updater::repo(), "|", (int) BDACI_PA_Settings::get("update_auto");').strip()=='ericmdizon/bdaci-portal|1')
+r=s4.get(B+'/wp-admin/admin.php?page=bdaci-portal-settings')
+check('settings has Updates section', 'id="bdaci-updates"' in r.text and 'GitHub access key' in r.text and 'Check for updates now' in r.text and 'Installed version: '+cur in r.text)
+n=fnonce(r.text,'bdaci_pa_settings')
+def save_settings(extra):
+    h=s4.get(B+"/wp-admin/admin.php?page=bdaci-portal-settings").text; d={}
+    for k,v in json.loads(php('echo wp_json_encode(BDACI_PA_Settings::all());')).items():
+        if 'secret' in k or k=='update_token' or isinstance(v,(list,dict)): continue
+        if k.startswith(('mfa_','board_','allow_','ms_enabled','google_enabled','remove_','portal_layout','portal_fonts','portal_keep','update_auto')):
+            if int(v or 0): d[k]='1'
+        else: d[k]=str(v)
+    d.update({'action':'bdaci_pa_settings','_wpnonce':fnonce(h,'bdaci_pa_settings')}); d.update(extra)
+    d={k:v for k,v in d.items() if v is not None}
+    return s4.post(B+'/wp-admin/admin-post.php',data=d)
+save_settings({'update_repo':'https://github.com/ericmdizon/bdaci-portal.git','update_token':'ghp_testkey123'})
+check('repo URL is tidied to owner/name and key stored', php('echo BDACI_PA_Updater::repo(), "|", BDACI_PA_Updater::token();').strip()=='ericmdizon/bdaci-portal|ghp_testkey123')
+r=s4.get(B+'/wp-admin/admin.php?page=bdaci-portal-settings'); check('access key never shown back', 'ghp_testkey123' not in r.text and 'Saved — leave blank to keep' in r.text)
+save_settings({'update_repo':'bad repo; rm -rf'}); check('invalid repo rejected', php('echo "[",BDACI_PA_Updater::repo(),"]";').strip()=='[]')
+save_settings({'update_repo':'ericmdizon/bdaci-portal'}); check('blank key field keeps stored key', php('echo BDACI_PA_Updater::token();').strip()=='ghp_testkey123')
+
+reset_upd('array("code"=>200,"version"=>"2.99.0")')
+r=s4.get(B+'/wp-admin/plugins.php')
+check('Plugins screen shows Check for updates link', 'action=bdaci_pa_check_updates' in r.text and 'Check for updates</a>' in r.text)
+lk=re.search(r'href="([^"]*action=bdaci_pa_check_updates[^"]*)"', r.text).group(1).replace('&amp;','&').replace('&#038;','&')
+r=s4.get(lk, headers={'Referer':B+'/wp-admin/plugins.php'})
+check('Check for updates finds newer release', 'BDACI Portal Access 2.99.0 is available' in r.text and r.url.endswith('plugins.php'), r.url)
+check('update appears on the Plugins list', 'There is a new version of BDACI Portal Access available' in r.text and 'update now' in r.text.lower(), re.findall(r'new version[^<]{0,80}', r.text)[:2])
+check('GitHub asked with the access key', 'Bearer ghp_testkey123' in ghlog() and '/releases?per_page=20' in ghlog())
+check('drafts, pre-releases, assetless and non-version tags ignored', php('$i=BDACI_PA_Updater::latest(); echo $i["version"];').strip()=='2.99.0')
+cnt=ghlog().count('/releases?'); s4.get(B+'/wp-admin/plugins.php'); s4.get(B+'/wp-admin/'); check('release list is cached between page loads', ghlog().count('/releases?')==cnt)
+r=s4.get(B+'/wp-admin/plugin-install.php?tab=plugin-information&plugin=bdaci-portal-access&section=changelog')
+check('View details shows release notes and changelog', "What&#039;s new in 2.99.0" in r.text and 'Test release' in r.text and '<script>x</script>' not in r.text and '= '+cur+' =' not in r.text and cur in r.text, r.status_code)
+check('auto-update filter on when setting on', php('echo (int) apply_filters("auto_update_plugin", false, (object) array("plugin"=>"'+BN+'"));').strip()=='1')
+check('auto-update leaves other plugins alone', php('echo (int) apply_filters("auto_update_plugin", false, (object) array("plugin"=>"hello.php"));').strip()=='0')
+save_settings({'update_auto':None}); check('auto-update off when unticked', php('echo (int) apply_filters("auto_update_plugin", false, (object) array("plugin"=>"'+BN+'"));').strip()=='0')
+save_settings({'update_auto':'1'})
+r=s4.get(B+'/wp-admin/admin.php?page=bdaci-portal-settings'); check('settings shows the available version and last check time', 'Version 2.99.0 is available' in r.text and re.search(r'Last checked [A-Z][a-z]{2} \d{1,2}, \d{4} \d{1,2}:\d{2} [AP]M', r.text) is not None)
+r=sb.get(lk, allow_redirects=False); check('board member cannot trigger update check', r.status_code in (403,302) and 'is available' not in r.text, r.status_code)
+r=s4.get(B+'/wp-admin/admin-post.php?action=bdaci_pa_check_updates&_wpnonce=bad'); check('check needs a valid nonce', 'is available' not in r.text and r.status_code in (403,200))
+
+reset_upd('array("code"=>401,"version"=>"2.99.0")')
+r=s4.get(lk, headers={'Referer':B+'/wp-admin/plugins.php'}); check('bad access key explained', 'GitHub refused the access key' in r.text)
+r=s4.get(B+'/wp-admin/admin.php?page=bdaci-portal-settings'); check('error shown in Settings › Updates', 'GitHub refused the access key' in r.text)
+cnt=ghlog().count('/releases?'); s4.get(B+'/wp-admin/plugins.php'); s4.get(B+'/wp-admin/plugins.php'); check('failed check not retried on every page load', ghlog().count('/releases?')==cnt, ghlog().count('/releases?')-cnt)
+reset_upd('array("code"=>404,"version"=>"2.99.0")'); r=s4.get(lk, headers={'Referer':B+'/wp-admin/plugins.php'}); check('missing repo explained', 'could not find the repository' in r.text)
+reset_upd(None); r=s4.get(lk, headers={'Referer':B+'/wp-admin/plugins.php'}); check('GitHub offline does not break Plugins screen', r.status_code==200 and 'Plugins' in r.text and 'offline' in r.text)
+reset_upd('array("code"=>200,"version"=>"'+cur+'")'); r=s4.get(lk, headers={'Referer':B+'/wp-admin/plugins.php'}); check('same version reports up to date', 'is up to date ('+cur+')' in r.text and 'There is a new version of BDACI Portal Access' not in r.text)
+reset_upd('array("code"=>200,"version"=>"1.0.0")'); r=s4.get(lk, headers={'Referer':B+'/wp-admin/plugins.php'}); check('older release never offered', 'is up to date' in r.text)
+
+# Real "update now" from the Plugins screen, only on a copy where the plugin is a real folder (not the dev symlink).
+pdir=WP+'/wp-content/plugins/bdaci-portal-access'
+if not os.path.islink(pdir):
+    import zipfile
+    with zipfile.ZipFile(WP+'/wp-content/fake-update.zip','w') as z:
+        for root,_,files in os.walk(pdir):
+            for f in files:
+                full=os.path.join(root,f); arc=os.path.relpath(full, os.path.dirname(pdir)); data=open(full,'rb').read()
+                if f=='bdaci-portal-access.php': data=data.replace(cur.encode(),b'2.99.0')
+                z.writestr(arc,data)
+    reset_upd('array("code"=>200,"version"=>"2.99.0")')
+    r=s4.get(lk, headers={'Referer':B+'/wp-admin/plugins.php'})
+    m=re.search(r'href="([^"]*update\.php\?action=upgrade-plugin[^"]*bdaci-portal-access[^"]*)"', r.text)
+    check('update now link present', m is not None)
+    u=m.group(1).replace('&amp;','&').replace('&#038;','&'); u=u if u.startswith('http') else B+'/wp-admin/'+u
+    r=s4.get(u, timeout=120)
+    check('update installs from GitHub release', 'Plugin updated successfully' in r.text, re.sub(r'<[^>]+>',' ',r.text)[-600:])
+    m=re.search(r'src="([^"]*update\.php\?action=activate-plugin[^"]*)"', r.text)
+    if m:  # WordPress reactivates the plugin in a small frame on the result page; a browser loads it, so do the same.
+        u=m.group(1).replace('&amp;','&').replace('&#038;','&'); s4.get(u if u.startswith('http') else B+'/wp-admin/'+u)
+    check('download followed the signed link without sending the key', ['https://objects.githubusercontent.com/fake/bdaci-portal-access.zip?sig=abc',''] in [json.loads(l) for l in ghlog().splitlines()], ghlog()[-400:])
+    check('new version active and portal still works', php('echo BDACI_PA_VERSION, "|", (int) is_plugin_active("'+BN+'");').strip()=='2.99.0|1' and s.get(B+'/portal-login/').status_code==200)
+    check('update logged', 'plugin_updated' in php('global $wpdb; echo implode(",", $wpdb->get_col("SELECT event FROM {$wpdb->prefix}bdaci_pa_log ORDER BY id DESC LIMIT 5"));'))
+    check('automatic updater would install it', php('require_once ABSPATH."wp-admin/includes/class-wp-upgrader.php"; $u=new WP_Automatic_Updater(); echo (int) apply_filters("auto_update_plugin", false, (object) array("plugin"=>"'+BN+'"));').strip()=='1')
+else:
+    print('SKIP real update install (plugin folder is a symlink to the source)')
+reset_upd(None)
+
 print(f'\n{ok} passed, {bad} failed')
